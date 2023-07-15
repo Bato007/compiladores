@@ -1,6 +1,61 @@
 // Define a grammar called Hello
 grammar Tokens;
 
-r  : 'hello' ID ;         // match keyword hello followed by an identifier
-ID : [a-z]+ ;             // match lower-case identifiers
-WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+RESERVED_CLASS : 'class' | 'CLASS' ;
+RESERVED_ELSE : 'else' | 'ELSE' ;
+RESERVED_IF : 'if' | 'IF' ;
+RESERVED_FI : 'fi' | 'FI' ;
+RESERVED_IN : 'in' | 'IN' ;
+RESERVED_INHERITS : 'inherits' | 'INHERITS' ;
+RESERVED_LOOP : 'loop' | 'LOOP' ;
+RESERVED_POOL : 'pool' | 'POOL' ;
+RESERVED_THEN : 'then' | 'THEN' ;
+RESERVED_WHILE : 'while' | 'WHILE' ;
+RESERVED_NEW : 'new' | 'NEW' ;
+
+RESERVED_TRUE : 'true' ;
+RESERVED_FALSE : 'false' ;
+RESERVED_SELF : 'self' ;
+RESERVED_SELF_TYPE : 'SELF_TYPE' ;
+
+// OPERATORS
+OPERATOR_DOT : '.' ;
+OPERATOR_AT : '@' ;
+OPERATOR_TILDE : '~' ;
+RESERVED_ISVOID : 'isvoid' | 'ISVOID' ;
+OPERATOR_MULTIPLY : '*' ;
+OPERATOR_DIVIDE : '/' ;
+OPERATOR_PLUS : '+' ;
+OPERATOR_MINUS : '-' ;
+OPERATOR_LESS_EQUAL : '<=' ;
+OPERATOR_LESS : '<' ;
+OPERATOR_EQUALS : '=' ;
+RESERVED_NOT : 'not' | 'NOT' ;
+OPERATOR_ASSIGNMENT : '<-' ;
+
+WS : [ \t\r\n]+ -> skip ;
+
+LOWER_CASE : [a-z] ;
+UPPER_CASE : [A-Z] ;
+
+INTEGER : [0-9] ;
+
+CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
+OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
+
+r  : 
+  RESERVED_CLASS
+  | RESERVED_ELSE
+  | RESERVED_IF
+  | RESERVED_FI
+  | RESERVED_IN
+  | RESERVED_INHERITS
+  | RESERVED_ISVOID
+  | RESERVED_LOOP
+  | RESERVED_POOL
+  | RESERVED_THEN
+  | RESERVED_WHILE
+  | RESERVED_NEW
+  | RESERVED_NOT
+  | CLASS_ID
+  | OBJ_ID ;
