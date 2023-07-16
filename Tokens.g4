@@ -33,15 +33,22 @@ OPERATOR_EQUALS : '=' ;
 RESERVED_NOT : 'not' | 'NOT' ;
 OPERATOR_ASSIGNMENT : '<-' ;
 
-WS : [ \t\r\n]+ -> skip ;
+WS : (' ' | '\t' | '\r' | '\n')+ -> skip ;
 
 LOWER_CASE : [a-z] ;
 UPPER_CASE : [A-Z] ;
 
 INTEGER : [0-9] ;
 
+LEFT_KEY : '{' ;
+RIGHT_KEY : '}' ;
+SEMI_COLON : ';' ;
+
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
 OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
+
+class : RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY OBJ_ID SEMI_COLON RIGHT_KEY ;
+program : (class SEMI_COLON)+ ;
 
 r  : 
   RESERVED_CLASS
@@ -57,5 +64,7 @@ r  :
   | RESERVED_WHILE
   | RESERVED_NEW
   | RESERVED_NOT
+  | WS
   | CLASS_ID
-  | OBJ_ID ;
+  | OBJ_ID
+  | program ;
