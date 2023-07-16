@@ -12,6 +12,7 @@ RESERVED_POOL : 'pool' | 'POOL' ;
 RESERVED_THEN : 'then' | 'THEN' ;
 RESERVED_WHILE : 'while' | 'WHILE' ;
 RESERVED_NEW : 'new' | 'NEW' ;
+RESERVED_LET : 'let' | 'LET' ;
 
 RESERVED_TRUE : 'true' ;
 RESERVED_FALSE : 'false' ;
@@ -39,32 +40,76 @@ LOWER_CASE : [a-z] ;
 UPPER_CASE : [A-Z] ;
 
 INTEGER : [0-9] ;
+STRING : 'TODO' ;
 
 LEFT_KEY : '{' ;
 RIGHT_KEY : '}' ;
+LEFT_PARENTESIS : '(' ;
+RIGHT_PARENTESIS : ')' ;
+COLON : ':' ;
 SEMI_COLON : ';' ;
+
+COMMA : ',' ;
 
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
 OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
 
-class : RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY OBJ_ID SEMI_COLON RIGHT_KEY ;
+expr_params : expr (COMMA expr)*;
+expr : 
+  // variable <- expr
+  OBJ_ID OPERATOR_ASSIGNMENT expr
+  // expr [@CLASS_ID].OBJ_ID([expr params])
+  expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  // variable([expr params])
+  | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  // if expr then expr else expr fi
+  | RESERVED_IF expr RESERVED_THEN expr RESERVED_ELSE expr RESERVED_FI
+  // while expr loop expr pool
+  | RESERVED_WHILE expr RESERVED_LOOP expr RESERVED_POOL
+  // { (expr;)+ }
+  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY
+  // let OBJ_ID : TYPE_ID [ <- expr ] (, OBJ_ID : CLASS_ID [<- expr])* in expr
+  | RESERVED_LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* RESERVED_IN expr
+  // new Date
+  | RESERVED_NEW CLASS_ID
+  // isvoid expr
+  | RESERVED_ISVOID expr
+  // expr * expr
+  | expr OPERATOR_MULTIPLY expr
+  // expr / expr
+  | expr OPERATOR_DIVIDE expr
+  // expr + expr
+  | expr OPERATOR_PLUS expr
+  // expr - expr
+  | expr OPERATOR_MINUS expr
+  // ~expr
+  | OPERATOR_TILDE expr
+  // expr = expr
+  | expr OPERATOR_LESS expr
+  // expr <= expr
+  | expr OPERATOR_LESS_EQUAL expr
+  // expr = expr
+  | expr OPERATOR_EQUALS expr
+  // not expr
+  | RESERVED_NOT expr
+  // ( expr )
+  | LEFT_PARENTESIS expr RIGHT_PARENTESIS
+  // object
+  | OBJ_ID
+  // 1
+  | INTEGER
+  // example string
+  | STRING
+  // true
+  | RESERVED_TRUE
+  // false
+  | RESERVED_FALSE ;
+
+formal : OBJ_ID COLON CLASS_ID ;
+feature : 
+  OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY (feature SEMI_COLON)* RIGHT_KEY
+  | feature (OPERATOR_ASSIGNMENT expr)? ;
+class : RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY feature SEMI_COLON RIGHT_KEY ;
 program : (class SEMI_COLON)+ ;
 
-r  : 
-  RESERVED_CLASS
-  | RESERVED_ELSE
-  | RESERVED_IF
-  | RESERVED_FI
-  | RESERVED_IN
-  | RESERVED_INHERITS
-  | RESERVED_ISVOID
-  | RESERVED_LOOP
-  | RESERVED_POOL
-  | RESERVED_THEN
-  | RESERVED_WHILE
-  | RESERVED_NEW
-  | RESERVED_NOT
-  | WS
-  | CLASS_ID
-  | OBJ_ID
-  | program ;
+r  : program ;
