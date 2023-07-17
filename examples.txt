@@ -1,10 +1,10 @@
-class Ba {
-sa : String <- "Hello";
-ga(ya:String) : Int {
-ya.concat(sa)
+class B {
+s : String <- "Hello";
+g(y:String) : Int {
+y.concat(s)
 };
-fa(xa:Int) : Int {
-xa+1
+f(x:Int) : Int {
+x+1
 };
 };
 

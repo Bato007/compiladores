@@ -36,8 +36,8 @@ OPERATOR_ASSIGNMENT : '<-' ;
 
 WS : (' ' | '\t' | '\r' | '\n')+ -> skip ;
 
-LOWER_CASE : [a-z] ;
-UPPER_CASE : [A-Z] ;
+fragment LOWER_CASE : [a-z] ;
+fragment UPPER_CASE : [A-Z] ;
 
 INTEGER : [0-9]+ ;
 
