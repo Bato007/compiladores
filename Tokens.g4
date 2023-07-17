@@ -45,26 +45,45 @@ QUOTE : '"' ;
 fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | INTEGER) ;
 fragment BACK_SLASH : '\\' ;
 fragment ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
+fragment TEXT : (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* ;
 STRING : QUOTE (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
 
 LEFT_KEY : '{' ;
 RIGHT_KEY : '}' ;
 LEFT_PARENTESIS : '(' ;
 RIGHT_PARENTESIS : ')' ;
+
 COLON : ':' ;
 SEMI_COLON : ';' ;
-
 COMMA : ',' ;
+
+// (* expr *)
+COMMENT
+  : '(*' TEXT? '*)' -> skip
+;
+
+LINE_COMMENT
+  : '--' ~[\r\n]* -> skip
+;
+
+ERROR :
+  .*? { System.out.println("ERROR IN CODE"); }
+;
 
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
 OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
 
+OBJ_TYPE :
+  CLASS_ID
+  | RESERVED_SELF_TYPE
+;
+
 expr_params : expr (COMMA expr)*;
-expr : 
-  // variable <- expr
-  OBJ_ID OPERATOR_ASSIGNMENT expr
+expr :
   // expr [@CLASS_ID].OBJ_ID([expr params])
-  | expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  // variable <- expr
+  | OBJ_ID OPERATOR_ASSIGNMENT expr
   // variable([expr params])
   | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
   // if expr then expr else expr fi
@@ -77,6 +96,8 @@ expr :
   | RESERVED_LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* RESERVED_IN expr
   // new Date
   | RESERVED_NEW CLASS_ID
+  // ~expr  
+  | OPERATOR_TILDE expr
   // isvoid expr
   | RESERVED_ISVOID expr
   // expr * expr
@@ -87,8 +108,6 @@ expr :
   | expr OPERATOR_PLUS expr
   // expr - expr
   | expr OPERATOR_MINUS expr
-  // ~expr
-  | OPERATOR_TILDE expr
   // expr = expr
   | expr OPERATOR_LESS expr
   // expr <= expr
@@ -99,8 +118,6 @@ expr :
   | RESERVED_NOT expr
   // ( expr )
   | LEFT_PARENTESIS expr RIGHT_PARENTESIS
-  // object
-  | OBJ_ID
   // 1
   | INTEGER
   // example string
@@ -108,15 +125,29 @@ expr :
   // true
   | RESERVED_TRUE
   // false
-  | RESERVED_FALSE ;
+  | RESERVED_FALSE
+  // self
+  // | RESERVED_SELF
+  // object
+  | OBJ_ID
+  | ERROR
+;  
 
-formal : OBJ_ID COLON CLASS_ID ;
+formal : 
+  OBJ_ID COLON CLASS_ID
+;
 feature : 
-  | OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY
+  OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY
   | OBJ_ID (OPERATOR_ASSIGNMENT expr)? 
   | OBJ_ID COLON CLASS_ID OPERATOR_ASSIGNMENT expr
-  | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS ;
-r_class : RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY (feature SEMI_COLON)+ RIGHT_KEY;
-program : (r_class SEMI_COLON)+ ;
-
-r  : program ;
+  | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS
+;
+r_class :
+  RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY (feature SEMI_COLON)+ RIGHT_KEY
+;
+program : 
+  (r_class SEMI_COLON)+
+;
+r  :
+  program
+;
