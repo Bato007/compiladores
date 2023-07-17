@@ -42,9 +42,9 @@ UPPER_CASE : [A-Z] ;
 INTEGER : [0-9]+ ;
 
 QUOTE : '"' ;
-BASE_STRING : (UPPER_CASE | LOWER_CASE | INTEGER) ;
-BACK_SLASH : '\\' ;
-ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
+fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | INTEGER) ;
+fragment BACK_SLASH : '\\' ;
+fragment ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
 STRING : QUOTE (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
 
 LEFT_KEY : '{' ;
@@ -64,7 +64,7 @@ expr :
   // variable <- expr
   OBJ_ID OPERATOR_ASSIGNMENT expr
   // expr [@CLASS_ID].OBJ_ID([expr params])
-  expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  | expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
   // variable([expr params])
   | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
   // if expr then expr else expr fi
@@ -113,7 +113,8 @@ expr :
 formal : OBJ_ID COLON CLASS_ID ;
 feature : 
   OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY (feature SEMI_COLON)* RIGHT_KEY
-  | OBJ_ID (OPERATOR_ASSIGNMENT expr)? ;
+  | OBJ_ID (OPERATOR_ASSIGNMENT expr)? 
+  | OBJ_ID COLON CLASS_ID OPERATOR_ASSIGNMENT expr ;
 r_class : RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY feature SEMI_COLON RIGHT_KEY ;
 program : (r_class SEMI_COLON)+ ;
 
