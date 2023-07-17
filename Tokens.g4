@@ -39,8 +39,13 @@ WS : (' ' | '\t' | '\r' | '\n')+ -> skip ;
 LOWER_CASE : [a-z] ;
 UPPER_CASE : [A-Z] ;
 
-INTEGER : [0-9] ;
-STRING : 'TODO' ;
+INTEGER : [0-9]+ ;
+
+QUOTE : '"' ;
+BASE_STRING : (UPPER_CASE | LOWER_CASE | INTEGER) ;
+BACK_SLASH : '\\' ;
+ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
+STRING : QUOTE (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
 
 LEFT_KEY : '{' ;
 RIGHT_KEY : '}' ;
