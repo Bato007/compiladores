@@ -1,0 +1,18 @@
+class Ba {
+sa : String <- "Hello";
+ga(ya:String) : Int {
+ya.concat(sa)
+};
+fa(xa:Int) : Int {
+xa+1
+};
+};
+
+
+class Pa {
+fa(): Int { 1 };
+};
+
+class Ca inherits Pa {
+fa(): String { "1" };
+};
