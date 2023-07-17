@@ -127,7 +127,7 @@ expr :
   // false
   | RESERVED_FALSE
   // self
-  // | RESERVED_SELF
+  | RESERVED_SELF
   // object
   | OBJ_ID
   | ERROR
