@@ -46,7 +46,7 @@ fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | INTEGER) ;
 fragment BACK_SLASH : '\\' ;
 fragment ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
 fragment TEXT : (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* ;
-STRING : QUOTE (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
+STRING : QUOTE (BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
 
 LEFT_KEY : '{' ;
 RIGHT_KEY : '}' ;
@@ -71,7 +71,7 @@ ERROR :
 ;
 
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
-OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
+OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER | '_' | '.')* ;
 
 OBJ_TYPE :
   CLASS_ID
@@ -91,11 +91,13 @@ expr :
   // while expr loop expr pool
   | RESERVED_WHILE expr RESERVED_LOOP expr RESERVED_POOL
   // { (expr;)+ }
-  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY
+  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY (SEMI_COLON)*
   // let OBJ_ID : TYPE_ID [ <- expr ] (, OBJ_ID : CLASS_ID [<- expr])* in expr
   | RESERVED_LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* RESERVED_IN expr
   // new Date
   | RESERVED_NEW CLASS_ID
+  // new List.cons(1).cons(2).cons(3).cons(4).cons(5);
+  | '.' (OBJ_ID) RIGHT_PARENTESIS (expr)* LEFT_PARENTESIS (SEMI_COLON)*
   // ~expr  
   | OPERATOR_TILDE expr
   // isvoid expr
@@ -122,15 +124,14 @@ expr :
   | INTEGER
   // example string
   | STRING
+  // variable
+  | OBJ_ID
   // true
   | RESERVED_TRUE
   // false
   | RESERVED_FALSE
   // self
   | RESERVED_SELF
-  // object
-  | OBJ_ID
-  | ERROR
 ;  
 
 formal : 
@@ -139,7 +140,10 @@ formal :
 feature : 
   OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY
   | OBJ_ID (OPERATOR_ASSIGNMENT expr)? 
-  | OBJ_ID COLON CLASS_ID OPERATOR_ASSIGNMENT expr
+  // s : String;
+  | formal
+  // s : String <- "Hello"; | s : "Hello"; | | s : String;
+  | OBJ_ID (COLON CLASS_ID)? OPERATOR_ASSIGNMENT expr
   | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS
 ;
 r_class :
