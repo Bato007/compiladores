@@ -82,8 +82,6 @@ expr_params : expr (COMMA expr)*;
 expr :
   // expr [@CLASS_ID].OBJ_ID([expr params])
   expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
-  // variable <- expr
-  | OBJ_ID OPERATOR_ASSIGNMENT expr
   // variable([expr params])
   | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
   // if expr then expr else expr fi
@@ -118,6 +116,8 @@ expr :
   | expr OPERATOR_EQUALS expr
   // not expr
   | RESERVED_NOT expr
+  // variable <- expr
+  | OBJ_ID OPERATOR_ASSIGNMENT expr
   // ( expr )
   | LEFT_PARENTESIS expr RIGHT_PARENTESIS
   // 1
