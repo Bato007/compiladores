@@ -1,5 +1,4 @@
-// Define a grammar called Hello
-grammar Tokens;
+grammar Yalp;
 
 RESERVED_CLASS : 'class' | 'CLASS' ;
 RESERVED_ELSE : 'else' | 'ELSE' ;
@@ -108,7 +107,7 @@ expr :
   | expr OPERATOR_PLUS expr
   // expr - expr
   | expr OPERATOR_MINUS expr
-  // expr = expr
+  // expr < expr
   | expr OPERATOR_LESS expr
   // expr <= expr
   | expr OPERATOR_LESS_EQUAL expr
@@ -137,14 +136,19 @@ expr :
 formal : 
   OBJ_ID COLON CLASS_ID
 ;
-feature : 
-  OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY
-  | OBJ_ID (OPERATOR_ASSIGNMENT expr)? 
+
+var_declarations :
+  OBJ_ID (OPERATOR_ASSIGNMENT expr)? 
   // s : String;
   | formal
   // s : String <- "Hello"; | s : "Hello"; | | s : String;
   | OBJ_ID (COLON CLASS_ID)? OPERATOR_ASSIGNMENT expr
+;
+
+feature : 
+  OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY
   | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS
+  | var_declarations
 ;
 r_class :
   RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY (feature SEMI_COLON)+ RIGHT_KEY

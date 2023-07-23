@@ -1,5 +1,10 @@
 /.antlr
+/__pycache__
 *.class
 *.java
 *.tokens
 *.interp
+YalpLexer.py
+YalpListener.py
+YalpVisitor.py
+YalpParser.py

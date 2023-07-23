@@ -4,6 +4,6 @@ del /s *.java
 del /s *.tokens
 del /s *.interp
 
-antlr4 Tokens.g4
-javac Tokens*.java
-grun Tokens r -gui
+antlr4 Yalp.g4
+javac Yalp*.java
+grun Yalp r -gui

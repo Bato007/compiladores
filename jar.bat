@@ -4,6 +4,6 @@ del /s *.java
 del /s *.tokens
 del /s *.interp
 
-Java -jar D:/Javalib/antlr-4.13.0-complete.jar Tokens.g4
-javac Tokens*.java
-grun Tokens r -gui
+Java -jar D:/Javalib/antlr-4.13.0-complete.jar Yalp.g4
+javac Yalp*.java
+grun Yalp r -gui

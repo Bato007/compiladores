@@ -10,3 +10,8 @@ grun <filename> r -gui
 ```
 
 Then do CTRL + Z + ENTER, then the image will show
+
+To generate python files use the following comand
+```
+antlr4 -Dlanguage=Python3 -visitor <filename>.g4
+```
