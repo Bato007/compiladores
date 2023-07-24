@@ -3,6 +3,7 @@ from YalpLexer import YalpLexer
 from YalpParser import YalpParser
 from YalpVisitor import YalpVisitor
 from YalpListener import YalpListener
+import re
 
 input_string = '''
 class DB {
@@ -23,9 +24,40 @@ class DB2 {
 };
 '''
 
-operators = {
-
-}
+RETURN_INTEGER = [
+   ["INTEGER", "OPERATOR_PLUS", "INTEGER"],
+   ["INTEGER", "OPERATOR_DIVIDE", "INTEGER"],
+   ["INTEGER", "OPERATOR_MULTIPLY", "INTEGER"],
+   ["INTEGER", "OPERATOR_MINUS", "INTEGER"],
+   ["OPERATOR_TILDE", "INTEGER"],
+]
+RETURN_BOOL = [
+   # Integers
+   ["INTEGER", "OPERATOR_LESS", "INTEGER"],
+   ["INTEGER", "OPERATOR_EQUALS", "INTEGER"],
+   ["INTEGER", "OPERATOR_LESS_EQUAL", "INTEGER"],
+    # Booleans
+   ["OPERATOR_TILDE", "RESERVED_TRUE"],
+   ["OPERATOR_TILDE", "RESERVED_FALSE"],
+   ["RESERVED_NOT", "RESERVED_TRUE"],
+   ["RESERVED_NOT", "RESERVED_FALSE"],
+   ["RESERVED_TRUE", "OPERATOR_LESS", "RESERVED_TRUE"],
+   ["RESERVED_FALSE", "OPERATOR_LESS", "RESERVED_FALSE"],
+   ["RESERVED_TRUE", "OPERATOR_LESS", "RESERVED_FALSE"],
+   ["RESERVED_FALSE", "OPERATOR_LESS", "RESERVED_TRUE"],
+   ["RESERVED_TRUE", "OPERATOR_LESS_EQUAL", "RESERVED_TRUE"],
+   ["RESERVED_FALSE", "OPERATOR_LESS_EQUAL", "RESERVED_FALSE"],
+   ["RESERVED_TRUE", "OPERATOR_LESS_EQUAL", "RESERVED_FALSE"],
+   ["RESERVED_FALSE", "OPERATOR_LESS_EQUAL", "RESERVED_TRUE"],
+   ["RESERVED_TRUE", "OPERATOR_EQUALS", "RESERVED_TRUE"],
+   ["RESERVED_FALSE", "OPERATOR_EQUALS", "RESERVED_FALSE"],
+   ["RESERVED_TRUE", "OPERATOR_EQUALS", "RESERVED_FALSE"],
+   ["RESERVED_FALSE", "OPERATOR_EQUALS", "RESERVED_TRUE"],
+   # String
+   ["STRING", "OPERATOR_LESS", "STRING"],
+   ["STRING", "OPERATOR_EQUALS", "STRING"],
+   ["STRING", "OPERATOR_LESS_EQUAL", "STRING"],
+]
 
 
 class TypeCollectorListener(YalpListener):  # Change the base class to YourGrammarListener
@@ -65,6 +97,17 @@ class PostOrderVisitor(YalpVisitor):
     self.current_class = None
     self.types = types
 
+  def process_child(self, child, chidren_nodes):
+      if isinstance(child, TerminalNode):
+          chidren_nodes.append(
+             self.types[child.getText()]
+          ) 
+      else:
+          # Operando de forma recursiva hasta no tener reglas, sino tokens individuales
+          for j in range(child.getChildCount()):
+              sub_child = child.getChild(j)
+              self.process_child(sub_child, chidren_nodes)
+
   def visit(self, tree):
     if isinstance(tree, TerminalNode):
       # Handle terminal nodes (tokens) here if needed
@@ -78,7 +121,22 @@ class PostOrderVisitor(YalpVisitor):
         self.visit(child)
 
       if type(tree) == YalpParser.Var_declarationsContext:
-        print('0', tree.getText())
+        pattern = r'(:|<-\s*)'
+        parts = re.split(pattern, tree.getText())
+
+        if (parts and len(parts) == 5):
+          cleaned_var = re.sub(r'\s+', '', parts[0])
+          cleaned_type = re.sub(r'\s+', '', parts[2])
+          cleaned_value = re.sub(r'\s+', '', parts[4])
+
+          if (cleaned_var in self.types):
+             self.types[cleaned_var] = cleaned_type
+
+          print(f'0 variable {cleaned_var} declaration value: {cleaned_value} type: {cleaned_type} \n')
+        else:
+          raise("Unexpected var definition")
+
+
         return
       # Visit the current node if it's a ParserRuleContext
       elif type(tree) == YalpParser.R_classContext:
@@ -115,6 +173,12 @@ class PostOrderVisitor(YalpVisitor):
         token_name = ""
         if (tree.getText() in self.types):
             token_name = self.types[tree.getText()]
+        else:
+          chidren_nodes = []
+          self.process_child(tree, chidren_nodes)
+          print("entroooo en el else", tree.getText(), chidren_nodes)
+
+
         print(f'3 expressions value: {tree.getText()} token_name: {token_name} \n')
         pass
 
@@ -139,5 +203,5 @@ walker.walk(listener, parse_tree)
 types = listener.types
 print("Types:", types)
 
-# visitor = PostOrderVisitor(types)
-# visitor.visit(parse_tree)
+visitor = PostOrderVisitor(types)
+visitor.visit(parse_tree)
