@@ -124,18 +124,20 @@ class PostOrderVisitor(YalpVisitor):
         pattern = r'(:|<-\s*)'
         parts = re.split(pattern, tree.getText())
 
-        if (parts and len(parts) == 5):
+        if (parts and len(parts) >= 3):
           cleaned_var = re.sub(r'\s+', '', parts[0])
           cleaned_type = re.sub(r'\s+', '', parts[2])
-          cleaned_value = re.sub(r'\s+', '', parts[4])
 
           if (cleaned_var in self.types):
              self.types[cleaned_var] = cleaned_type
 
+        if (parts and len(parts) == 5):
+          cleaned_value = re.sub(r'\s+', '', parts[4])
           print(f'0 variable {cleaned_var} declaration value: {cleaned_value} type: {cleaned_type} \n')
+        elif (parts and len(parts) == 3):
+          print(f'0 variable {cleaned_var} type: {cleaned_type} \n')
         else:
           raise("Unexpected var definition")
-
 
         return
       # Visit the current node if it's a ParserRuleContext
