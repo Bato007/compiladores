@@ -31,7 +31,7 @@ operators = {
 class TypeCollectorListener(YalpListener):  # Change the base class to YourGrammarListener
     def __init__(self):
         super().__init__()
-        self.types = []
+        self.types = {}
         self.parser = parser
 
     def getRuleContext(self):
@@ -43,16 +43,23 @@ class TypeCollectorListener(YalpListener):  # Change the base class to YourGramm
             if isinstance(child, TerminalNode):
                 symbol = child.symbol
                 token_name = self.parser.symbolicNames[symbol.type]
-                self.types.append(token_name)
+                
+                if (child.getText() in self.types):
+                   if (self.types[child.getText()] != token_name):
+                      raise ("Mismo hijo con diferente token")
+                
+                self.types[child.getText()] = token_name
+
+
             # else:
             #     rule_name = self.parser.ruleNames[child.getRuleIndex()]
             #     self.types.append(rule_name)
 
 class PostOrderVisitor(YalpVisitor):
-  def __init__(self):
+  def __init__(self, types):
     self.symbol_table = {}
     self.current_class = None
-    self.types = []
+    self.types = types
 
   def visit(self, tree):
     if isinstance(tree, TerminalNode):
@@ -67,12 +74,11 @@ class PostOrderVisitor(YalpVisitor):
         self.visit(child)
 
       if type(tree) == YalpParser.Var_declarationsContext:
-        print('0', tree.getText(), type(tree).__name__, tree.value)
+        print('0', tree.getText())
         return
       # Visit the current node if it's a ParserRuleContext
       elif type(tree) == YalpParser.R_classContext:
-        # Process the r_class rule
-        print('1', tree.getText(), type(tree).__name__, tree.value)
+        print('1', tree.getText())
         # class_name = tree.CLASS_ID().getText()
         # self.current_class = class_name
         # self.symbol_table[class_name] = {}
@@ -85,7 +91,7 @@ class PostOrderVisitor(YalpVisitor):
         #     self.visit(feature_ctx)
 
       elif type(tree) == YalpParser.FeatureContext:
-        print('2', tree.getText(), type(tree).__name__, tree.value)
+        print('2', tree.getText())
         # Process the feature rule
         # if tree.OBJ_ID(0):
         #     attribute_name = tree.OBJ_ID(0).getText()
@@ -102,7 +108,10 @@ class PostOrderVisitor(YalpVisitor):
 
       elif type(tree) == YalpParser.ExprContext:
         # Handle expressions here
-        print('3', tree.getText(), type(tree).__name__, tree.value)
+        token_name = ""
+        if (tree.getText() in self.types):
+            token_name = self.types[tree.getText()]
+        print(f'3 expressions value: {tree.getText()} token_name: {token_name} \n')
         pass
 
 # Create an input stream of the expression
@@ -120,14 +129,11 @@ parser = YalpParser(token_stream)
 # Start the parsing process by calling the 'r' rule
 parse_tree = parser.r()
 
-visitor = PostOrderVisitor()
-
 walker = ParseTreeWalker()
-# Optionally add a listener and let it walk the tree
 listener = TypeCollectorListener()
 walker.walk(listener, parse_tree)
-
 types = listener.types
 print("Types:", types)
 
-# visitor.visit(parse_tree)
+visitor = PostOrderVisitor(types)
+visitor.visit(parse_tree)
