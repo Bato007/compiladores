@@ -37,23 +37,27 @@ class TypeCollectorListener(YalpListener):  # Change the base class to YourGramm
     def getRuleContext(self):
         return None
 
+
+    def process_child(self, child):
+        if isinstance(child, TerminalNode):
+            symbol = child.symbol
+            token_name = self.parser.symbolicNames[symbol.type]
+            
+            if (child.getText() in self.types):
+                if (self.types[child.getText()] != token_name):
+                  raise ("Mismo hijo con diferente token")
+            
+            self.types[child.getText()] = token_name
+        else:
+            # Operando de forma recursiva hasta no tener reglas, sino tokens individuales
+            for j in range(child.getChildCount()):
+                sub_child = child.getChild(j)
+                self.process_child(sub_child)
+
     def enterExpr(self, ctx):
         for i in range(ctx.getChildCount()):
             child = ctx.getChild(i)
-            if isinstance(child, TerminalNode):
-                symbol = child.symbol
-                token_name = self.parser.symbolicNames[symbol.type]
-                
-                if (child.getText() in self.types):
-                   if (self.types[child.getText()] != token_name):
-                      raise ("Mismo hijo con diferente token")
-                
-                self.types[child.getText()] = token_name
-
-
-            # else:
-            #     rule_name = self.parser.ruleNames[child.getRuleIndex()]
-            #     self.types.append(rule_name)
+            self.process_child(child)
 
 class PostOrderVisitor(YalpVisitor):
   def __init__(self, types):
@@ -135,5 +139,5 @@ walker.walk(listener, parse_tree)
 types = listener.types
 print("Types:", types)
 
-visitor = PostOrderVisitor(types)
-visitor.visit(parse_tree)
+# visitor = PostOrderVisitor(types)
+# visitor.visit(parse_tree)
