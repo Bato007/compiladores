@@ -1,9 +1,9 @@
 @echo off
-del /s *.class
-del /s *.java
-del /s *.tokens
-del /s *.interp
+@REM del /s *.class
+@REM del /s *.java
+@REM del /s *.tokens
+@REM del /s *.interp
 
-antlr4 Yalp.g4
+antlr Yalp.g4
 javac Yalp*.java
 grun Yalp r -gui
