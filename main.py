@@ -21,8 +21,35 @@ class DB2 {
   f() : Int {
     1+1;
     1-1;
-    "1" + 3;
-    s <- s + 1;
+    1*1;
+    1/1;
+    not 1;
+    1<2;
+    1<=2;
+    1=2;
+    ~2;
+    true + false;
+    false - false;
+    false * true;
+    false / false;
+    not true;
+    true < false;
+    true <= true;
+    false = false;
+    ~ true;
+    "hola" + "adios";
+    "hola" - "adios";
+    "hola" * "adios";
+    "hola" / "adios";
+    not "hola";
+    "hola" < "adios";
+    "hola" <= "adios";
+    "hola" = "adios";
+    ~ "adios";
+    "hola" * 2;
+    true + 3;
+    false / 2;
+    2 + "a";
   };
 };
 '''
