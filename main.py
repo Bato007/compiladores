@@ -19,8 +19,9 @@ class DB {
 class DB2 {
   s : Int <- 1;
   f() : Int {
-    1+1;
     1-1;
+    "1" + 3;
+    s <- s + 1;
     1*1;
     1/1;
     not 1;
@@ -45,7 +46,7 @@ class DB2 {
     "hola" < "adios";
     "hola" <= "adios";
     "hola" = "adios";
-    ~ "adios";
+    ~"adios";
     "hola" * 2;
     true + 3;
     false / 2;
@@ -62,6 +63,8 @@ ARITHMETIC_OPERATORS = [
   'OPERATOR_DIVIDE',
   'OPERATOR_MULTIPLY',
   'OPERATOR_MINUS',
+  'RESERVED_NOT',
+  'OPERATOR_TILDE'
 ]
 
 TYPES = [
@@ -187,7 +190,6 @@ class PostOrderVisitor(YalpVisitor):
             temp = chidren_nodes[:]
             if 'OPERATOR_ASSIGNMENT' in chidren_nodes:
               temp = chidren_nodes[2:]
-
             for operator in ARITHMETIC_OPERATORS:
               if (
                 operator in temp
