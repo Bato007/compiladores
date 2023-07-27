@@ -33,8 +33,6 @@ OPERATOR_EQUALS : '=' ;
 RESERVED_NOT : 'not' | 'NOT' ;
 OPERATOR_ASSIGNMENT : '<-' ;
 
-WS : (' ' | '\t' | '\r' | '\n')+ -> skip ;
-
 fragment LOWER_CASE : [a-z] ;
 fragment UPPER_CASE : [A-Z] ;
 
@@ -57,6 +55,8 @@ SEMI_COLON : ';' ;
 COMMA : ',' ;
 
 // (* expr *)
+WS : (' ' | '\t' | '\r' | '\n')+ -> skip ;
+
 COMMENT
   : '(*' TEXT? '*)' -> skip
 ;
@@ -66,7 +66,7 @@ LINE_COMMENT
 ;
 
 ERROR :
-  .*? { System.out.println("ERROR IN CODE"); }
+  .*? { print('CUSTOM ERROR') }
 ;
 
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;

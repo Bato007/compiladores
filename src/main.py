@@ -1,8 +1,9 @@
 from antlr4 import *
-from YalpLexer import YalpLexer
-from YalpParser import YalpParser
-from YalpVisitor import YalpVisitor
-from YalpListener import YalpListener
+from grammar.YalpParser import YalpParser
+from grammar.YalpLexer import YalpLexer
+from grammar.YalpListener import YalpListener
+from grammar.YalpVisitor import YalpVisitor
+
 import re
 
 input_string = '''
