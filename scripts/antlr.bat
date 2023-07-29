@@ -6,7 +6,7 @@ del /s *.interp
 
 cd ./grammar
 
-antlr Yalp.g4 Constants.g4
+antlr *.g4
 javac *.java
 grun Yalp r -gui
 

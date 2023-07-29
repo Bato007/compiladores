@@ -4,199 +4,246 @@ from grammar.YalpLexer import YalpLexer
 from grammar.YalpListener import YalpListener
 from grammar.YalpVisitor import YalpVisitor
 
-import re
-
 input_string = '''
 class DB {
   -- this is another comment
   helloString : String <- "Hello";
   byeString : String <- "Bye";
+
   g(y:String) : Int {
     y.concat(s, "wuuu");
+    1 - 3 * (2 - 3);
+    1 = true;
+    1 + "1";
     1 + 1;
+  };
+
+  flag : Bool <- true;
+  thisAnotherFun(y:Int, well:String, pepe:Bool) : Int {
+    while flag = true loop
+      flag <- false
+    pool;
   };
 };
 
 class DB2 {
   s : Int <- 1;
+  blue : Bool <- true;
   f() : Int {
-    1-1;
-    "1" + 3;
-    s <- s + 1;
-    1*1;
-    1/1;
-    not 1;
-    1<2;
-    1<=2;
-    1=2;
-    ~2;
-    true + false;
-    false - false;
-    false * true;
-    false / false;
-    not true;
-    true < false;
-    true <= true;
-    false = false;
-    ~ true;
-    "hola" + "adios";
-    "hola" - "adios";
-    "hola" * "adios";
-    "hola" / "adios";
-    not "hola";
-    "hola" < "adios";
-    "hola" <= "adios";
-    "hola" = "adios";
-    ~"adios";
-    "hola" * 2;
-    true + 3;
-    false / 2;
-    2 + "a";
+    if blue then
+      s <- s + 1 - 3 * (2 - 3)
+    else
+      s <- 34 * (5 + 23) / 23 + 32
+    fi;
   };
 };
 '''
-TRANSLATIONS = {
-  'INT': 'INTEGER'
+
+TYPES = {
+  'Int-OPERATOR_PLUS-Int': 'Int',
+  'Int-OPERATOR_MINUS-Int': 'Int',
+  'Int-OPERATOR_DIVIDE-Int': 'Int',
+  'Int-OPERATOR_MULTIPLY-Int': 'Int',
+  'OPERATOR_TILDE-Int': 'Int',
+  # Integers
+  'Int-OPERATOR_LESS-Int': 'Bool',
+  'Int-OPERATOR_EQUALS-Int': 'Bool',
+  'Int-OPERATOR_LESS_EQUAL-Int': 'Bool',
+  # Booleans
+  'OPERATOR_TILDE-Bool': 'Bool',
+  'RESERVED_NOT-Bool': 'Bool',
+  'Bool-OPERATOR_LESS-Bool': 'Bool',
+  'Bool-OPERATOR_LESS_EQUAL-Bool': 'Bool',
+  'Bool-OPERATOR_EQUALS-Bool': 'Bool',
+  # String
+  'String-OPERATOR_LESS-String': 'Bool',
+  'String-OPERATOR_EQUALS-String': 'Bool',
+  'String-OPERATOR_LESS_EQUAL-String': 'Bool',
 }
 
-ARITHMETIC_OPERATORS = [
-  'OPERATOR_PLUS',
-  'OPERATOR_DIVIDE',
-  'OPERATOR_MULTIPLY',
-  'OPERATOR_MINUS',
-  'RESERVED_NOT',
-  'OPERATOR_TILDE'
-]
-
-TYPES = [
-  ["INTEGER", "OPERATOR_PLUS", "INTEGER"] ,
-  ["INTEGER", "OPERATOR_DIVIDE", "INTEGER"],
-  ["INTEGER", "OPERATOR_MULTIPLY", "INTEGER"],
-  ["INTEGER", "OPERATOR_MINUS", "INTEGER"],
-  ["OPERATOR_TILDE", "INTEGER"],
-  # Integers
-  ["INTEGER", "OPERATOR_LESS", "INTEGER"],
-  ["INTEGER", "OPERATOR_EQUALS", "INTEGER"],
-  ["INTEGER", "OPERATOR_LESS_EQUAL", "INTEGER"],
-  # Booleans
-  ["OPERATOR_TILDE", "RESERVED_TRUE"],
-  ["OPERATOR_TILDE", "RESERVED_FALSE"],
-  ["RESERVED_NOT", "RESERVED_TRUE"],
-  ["RESERVED_NOT", "RESERVED_FALSE"],
-  ["RESERVED_TRUE", "OPERATOR_LESS", "RESERVED_TRUE"],
-  ["RESERVED_FALSE", "OPERATOR_LESS", "RESERVED_FALSE"],
-  ["RESERVED_TRUE", "OPERATOR_LESS", "RESERVED_FALSE"],
-  ["RESERVED_FALSE", "OPERATOR_LESS", "RESERVED_TRUE"],
-  ["RESERVED_TRUE", "OPERATOR_LESS_EQUAL", "RESERVED_TRUE"],
-  ["RESERVED_FALSE", "OPERATOR_LESS_EQUAL", "RESERVED_FALSE"],
-  ["RESERVED_TRUE", "OPERATOR_LESS_EQUAL", "RESERVED_FALSE"],
-  ["RESERVED_FALSE", "OPERATOR_LESS_EQUAL", "RESERVED_TRUE"],
-  ["RESERVED_TRUE", "OPERATOR_EQUALS", "RESERVED_TRUE"],
-  ["RESERVED_FALSE", "OPERATOR_EQUALS", "RESERVED_FALSE"],
-  ["RESERVED_TRUE", "OPERATOR_EQUALS", "RESERVED_FALSE"],
-  ["RESERVED_FALSE", "OPERATOR_EQUALS", "RESERVED_TRUE"],
-  # String
-  ["STRING", "OPERATOR_LESS", "STRING"],
-  ["STRING", "OPERATOR_EQUALS", "STRING"],
-  ["STRING", "OPERATOR_LESS_EQUAL", "STRING"],
-]
-
-class TypeCollectorListener(YalpListener):  # Change the base class to YourGrammarListener
+class TypeCollectorVisitor(YalpVisitor):
   def __init__(self):
     super().__init__()
     self.types = {}
     self.parser = parser
 
-  def getRuleContext(self):
-    return None
+  # Visit a parse tree produced by YalpParser#string.
+  def visitString(self, ctx:YalpParser.StringContext):
+    self.types[ctx.getText()] = 'String'
+    return self.visitChildren(ctx)
 
-  def process_child(self, child):
-    if isinstance(child, TerminalNode):
-      symbol = child.symbol
-      token_name = self.parser.symbolicNames[symbol.type]
-      
-      if (child.getText() in self.types):
-        if (self.types[child.getText()] != token_name):
-          raise ("Mismo hijo con diferente token")
-      
-      self.types[child.getText()] = token_name
+  # Visit a parse tree produced by YalpParser#bool.
+  def visitBoolean(self, ctx:YalpParser.BooleanContext):
+    self.types[ctx.getText()] = 'Bool'
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#int.
+  def visitInt(self, ctx:YalpParser.IntContext):
+    self.types[ctx.getText()] = 'Int'
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#variable.
+  def visitVariable(self, ctx:YalpParser.VariableContext):
+    if ctx.getChildCount() == 1:
+      child = ctx.getChild(0)
+
+      key = self.parser.symbolicNames[child.symbol.type]
+      self.types[child.getText()] = key
     else:
-        # Operando de forma recursiva hasta no tener reglas, sino tokens individuales
-        for j in range(child.getChildCount()):
-            sub_child = child.getChild(j)
-            self.process_child(sub_child)
+      varName = ctx.getChild(0)
+      varType = ctx.getChild(2)
+      self.types[varName.getText()] = varType.getText()
 
-  def enterExpr(self, ctx):
-    for i in range(ctx.getChildCount()):
-      child = ctx.getChild(i)
-      self.process_child(child)
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#objectId.
+  def visitObjectId(self, ctx:YalpParser.ObjectIdContext):
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#formal.
+  def visitFormal(self, ctx:YalpParser.FormalContext):
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#var_declarations.
+  def visitVar_declarations(self, ctx:YalpParser.Var_declarationsContext):
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#feature.
+  def visitFeature(self, ctx:YalpParser.FeatureContext):
+    return self.visitChildren(ctx)
 
 class PostOrderVisitor(YalpVisitor):
   def __init__(self, types):
-    self.symbol_table = {}
-    self.current_class = None
+    self.parser = parser
     self.types = types
-
-  def process_child(self, child, chidren_nodes):
-    if isinstance(child, TerminalNode):
-      chidren_nodes.append(
-        self.types[child.getText()]
-      ) 
-    else:
-      # Operando de forma recursiva hasta no tener reglas, sino tokens individuales
-      for j in range(child.getChildCount()):
-        sub_child = child.getChild(j)
-        self.process_child(sub_child, chidren_nodes)
 
   def visit(self, tree):
     if isinstance(tree, TerminalNode):
       # Handle terminal nodes (tokens) here if needed
+      key = self.parser.symbolicNames[tree.symbol.type]
+
       if (tree.getText() in self.types.keys()):
         return self.types[tree.getText()]
+      elif (tree.getText() == 'String'):
+        return 'String'
+      elif (tree.getText() == 'Int'):
+        return 'Int'
+      elif (tree.getText() == 'Bool'):
+        return 'Bool'
+      elif (key == 'OBJ_ID'):
+        return key
       else:
         return 'Void'
-    else:
 
+    else:
       # Visit the children first
       child_types = []
-      for i in range(tree.getChildCount()):
+      child_count = tree.getChildCount()
+      for i in range(child_count):
         child = tree.getChild(i)
         child_type = self.visit(child)
 
         child_types.append(child_type)
 
-      if type(tree) == YalpParser.Var_declarationsContext:
-        pattern = r'(:|<-\s*)'
-        parts = re.split(pattern, tree.getText())
+      if child_count == 1:
+        return child_types[0]
 
-        if (parts and len(parts) >= 3):
-          cleaned_var = re.sub(r'\s+', '', parts[0])
-          cleaned_type = re.sub(r'\s+', '', parts[2]).upper()
+      node_type = type(tree)
+    
+      if (node_type == YalpParser.LoopTenseContext):
+        if (child_types[1] != 'Bool'):
+          print('>>>>>>', child_types[1], 'is a non valid operation')
+          return 'ERROR'
 
-          if (cleaned_type in TRANSLATIONS.keys()):
-            cleaned_type = TRANSLATIONS.get(cleaned_type)
+        if ('ERROR' in child_types):
+          return 'ERROR'
 
-          if (cleaned_var in self.types):
-            self.types[cleaned_var] = cleaned_type
+        # TODO: is void?
+        return 'Void'
 
-      # Visit the current node if it's a ParserRuleConte
-      elif type(tree) == YalpParser.ExprContext:
-        if (tree.getText() in self.types):
-          token_name = self.types[tree.getText()]
-        else:
-          chidren_nodes = []
-          self.process_child(tree, chidren_nodes)
+      if (node_type == YalpParser.IfTenseContext):
+        if (child_types[1] != 'Bool'):
+          print('>>>>>>', child_types[1], 'is a non valid operation')
+          return 'ERROR'
 
-          if (chidren_nodes not in TYPES):
-            temp = chidren_nodes[:]
-            if 'OPERATOR_ASSIGNMENT' in chidren_nodes:
-              temp = chidren_nodes[2:]
-            for operator in ARITHMETIC_OPERATORS:
-              if (
-                operator in temp
-                and temp not in TYPES
-              ):
-                print(f'Error in: {tree.getText()} rule {temp} not valid \n')
+        if ('ERROR' in child_types):
+          return 'ERROR'
+
+        # TODO: is void?
+        return 'Void'
+
+      if (
+        node_type == YalpParser.VariableContext
+        or node_type == YalpParser.Var_declarationsContext
+        or node_type == YalpParser.FormalContext
+      ):
+        return child_types[2]
+      
+      if (node_type == YalpParser.ParentesisContext):
+        return child_types[1]
+
+      if (
+        node_type == YalpParser.ArithmeticalContext
+        or node_type == YalpParser.LogicalContext
+      ):
+        leftOperand, _, rightOperand =  child_types
+        operator = tree.getChild(1)
+        operatorType = self.parser.symbolicNames[operator.symbol.type]
+
+        key = leftOperand + '-' + operatorType + '-' + rightOperand
+        if (key not in TYPES):
+          if (node_type == YalpParser.ArithmeticalContext):
+            print('>>>> Cannot operate', leftOperand, 'with', rightOperand)
+          else:
+            print('>>>> Cannot compare', leftOperand, 'with', rightOperand)
+
+          return 'ERROR'
+
+        return TYPES[key]
+
+      if (node_type == YalpParser.Expr_paramsContext):
+        return 'Void'
+
+      if (node_type == YalpParser.FunDeclarationContext):
+        if ('ERROR' in child_types):
+          return 'ERROR'
+
+        # TODO: GEt fun type
+        return 'Int'
+
+      if (node_type == YalpParser.AssignmentContext):
+        if ('ERROR' in child_types):
+          variable = tree.getChild(0)
+          print('Cannot assign to', variable.getText())
+          return 'ERROR'
+
+        if (child_types[0] != child_types[2]):
+          variable = tree.getChild(0)
+          print('Cannot assign', child_types[0], 'with', child_types[2])
+          return 'ERROR'
+
+        return child_types[0]
+      
+      if (node_type == YalpParser.FunctionCallContext):
+        if ('ERROR' in child_types):
+          return 'ERROR'
+        
+        # TODO: Make this get the function type
+        return 'Void'
+
+      if (node_type == YalpParser.R_classContext):
+        if ('ERROR' in child_types):
+          return 'ERROR'
+        
+        return tree.getText()[5:].split('{')[0]
+
+      class_types = list(filter(lambda a: a != 'Void', child_types))
+
+      if ('ERROR' in class_types):
+        print ('Type validation failed', class_types)
+        return
+
+      print('Type validation completed', class_types)
 
 # Create an input stream of the expression
 input_stream = InputStream(input_string)
@@ -213,11 +260,9 @@ parser = YalpParser(token_stream)
 # Start the parsing process by calling the 'r' rule
 parse_tree = parser.r()
 
-walker = ParseTreeWalker()
-listener = TypeCollectorListener()
-walker.walk(listener, parse_tree)
-types = listener.types
-# print("Types:", types)
+visitor = TypeCollectorVisitor()
+visitor.visit(parse_tree)
+# print("Types:", visitor.types)
 
-visitor = PostOrderVisitor(types)
+visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)

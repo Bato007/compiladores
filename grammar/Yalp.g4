@@ -1,20 +1,19 @@
 grammar Yalp;
 
-RESERVED_CLASS : 'class' | 'CLASS' ;
-RESERVED_ELSE : 'else' | 'ELSE' ;
-RESERVED_IF : 'if' | 'IF' ;
-RESERVED_FI : 'fi' | 'FI' ;
-RESERVED_IN : 'in' | 'IN' ;
-RESERVED_INHERITS : 'inherits' | 'INHERITS' ;
-RESERVED_LOOP : 'loop' | 'LOOP' ;
-RESERVED_POOL : 'pool' | 'POOL' ;
-RESERVED_THEN : 'then' | 'THEN' ;
-RESERVED_WHILE : 'while' | 'WHILE' ;
-RESERVED_NEW : 'new' | 'NEW' ;
-RESERVED_LET : 'let' | 'LET' ;
+CLASS : 'class' | 'CLASS' ;
+ELSE : 'else' | 'ELSE' ;
+IF : 'if' | 'IF' ;
+FI : 'fi' | 'FI' ;
+IN : 'in' | 'IN' ;
+INHERITS : 'inherits' | 'INHERITS' ;
+LOOP : 'loop' | 'LOOP' ;
+POOL : 'pool' | 'POOL' ;
+THEN : 'then' | 'THEN' ;
+WHILE : 'while' | 'WHILE' ;
+NEW : 'new' | 'NEW' ;
+LET : 'let' | 'LET' ;
 
-RESERVED_TRUE : 'true' ;
-RESERVED_FALSE : 'false' ;
+Bool : 'true' | 'false' ;
 RESERVED_SELF : 'self' ;
 RESERVED_SELF_TYPE : 'SELF_TYPE' ;
 
@@ -36,14 +35,15 @@ OPERATOR_ASSIGNMENT : '<-' ;
 fragment LOWER_CASE : [a-z] ;
 fragment UPPER_CASE : [A-Z] ;
 
-INTEGER : [0-9]+ ;
+Int : [0-9]+ ;
 
 QUOTE : '"' ;
-fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | INTEGER) ;
+fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | Int) ;
 fragment BACK_SLASH : '\\' ;
 fragment ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
 fragment TEXT : (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* ;
-STRING : QUOTE (BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
+
+String : QUOTE (BASE_STRING | ESCAPE_SEQUENCES | WS)* QUOTE ;
 
 LEFT_KEY : '{' ;
 RIGHT_KEY : '}' ;
@@ -66,11 +66,11 @@ LINE_COMMENT
 ;
 
 ERROR :
-  .*? { print('CUSTOM ERROR') }
+  .*?
 ;
 
-CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | INTEGER)* ;
-OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | INTEGER | '_' | '.')* ;
+CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | Int)* ;
+OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | Int | '_' | '.')* ;
 
 OBJ_TYPE :
   CLASS_ID
@@ -80,78 +80,84 @@ OBJ_TYPE :
 expr_params : expr (COMMA expr)*;
 expr :
   // expr [@CLASS_ID].OBJ_ID([expr params])
-  expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID 
+    LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                             # functionCall
   // variable([expr params])
-  | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS
+  | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                      # functionCall
   // if expr then expr else expr fi
-  | RESERVED_IF expr RESERVED_THEN expr RESERVED_ELSE expr RESERVED_FI
+  | IF expr THEN expr ELSE expr FI                                              # ifTense
   // while expr loop expr pool
-  | RESERVED_WHILE expr RESERVED_LOOP expr RESERVED_POOL
+  | WHILE expr LOOP expr POOL                                                   # loopTense
   // { (expr;)+ }
-  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY (SEMI_COLON)*
+  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY (SEMI_COLON)*                         # instructions
   // let OBJ_ID : TYPE_ID [ <- expr ] (, OBJ_ID : CLASS_ID [<- expr])* in expr
-  | RESERVED_LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* RESERVED_IN expr
+  | LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? 
+    (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* IN expr          # letTense
   // new Date
-  | RESERVED_NEW CLASS_ID
-  // new List.cons(1).cons(2).cons(3).cons(4).cons(5);
-  | '.' (OBJ_ID) RIGHT_PARENTESIS (expr)* LEFT_PARENTESIS (SEMI_COLON)*
+  | NEW CLASS_ID                                                                # objCreation
+  // new List.cons(1).cons(2).cons(3).cons(4).cons(5)
+  | OPERATOR_DOT 
+    (OBJ_ID) LEFT_PARENTESIS (expr)* RIGHT_PARENTESIS  (SEMI_COLON)*            # functionCall
   // ~expr  
-  | OPERATOR_TILDE expr
+  | OPERATOR_TILDE expr                                                         # arithmetical
   // isvoid expr
-  | RESERVED_ISVOID expr
+  | RESERVED_ISVOID expr                                                        # isVoidExpr
   // expr * expr
-  | expr OPERATOR_MULTIPLY expr
+  | expr OPERATOR_MULTIPLY expr                                                 # arithmetical
   // expr / expr
-  | expr OPERATOR_DIVIDE expr
-  // expr + expr
-  | expr OPERATOR_PLUS expr
+  | expr OPERATOR_DIVIDE expr                                                   # arithmetical
+  // expr + exprx
+  | expr OPERATOR_PLUS expr                                                     # arithmetical
   // expr - expr
-  | expr OPERATOR_MINUS expr
+  | expr OPERATOR_MINUS expr                                                    # arithmetical
   // expr < expr
-  | expr OPERATOR_LESS expr
+  | expr OPERATOR_LESS expr                                                     # logical
   // expr <= expr
-  | expr OPERATOR_LESS_EQUAL expr
+  | expr OPERATOR_LESS_EQUAL expr                                               # logical
   // expr = expr
-  | expr OPERATOR_EQUALS expr
+  | expr OPERATOR_EQUALS expr                                                   # logical
   // not expr
-  | RESERVED_NOT expr
+  | RESERVED_NOT expr                                                           # logical
   // variable <- expr
-  | OBJ_ID OPERATOR_ASSIGNMENT expr
+  | OBJ_ID OPERATOR_ASSIGNMENT expr                                             # assignment
   // ( expr )
-  | LEFT_PARENTESIS expr RIGHT_PARENTESIS
+  | LEFT_PARENTESIS expr RIGHT_PARENTESIS                                       # parentesis
   // 1
-  | INTEGER
+  | Int                                                                         # int
   // example string
-  | STRING
+  | String                                                                      # string
+  // true / false
+  | Bool                                                                        # boolean
   // variable
-  | OBJ_ID
-  // true
-  | RESERVED_TRUE
-  // false
-  | RESERVED_FALSE
+  | OBJ_ID                                                                      # objectId
   // self
-  | RESERVED_SELF
+  | RESERVED_SELF                                                               # self
 ;  
 
 formal : 
   OBJ_ID COLON CLASS_ID
 ;
 
+variable : 
+  OBJ_ID (COLON CLASS_ID)? 
+;
+
 var_declarations :
-  OBJ_ID (OPERATOR_ASSIGNMENT expr)? 
-  // s : String;
-  | formal
-  // s : String <- "Hello"; | s : "Hello"; | | s : String;
-  | OBJ_ID (COLON CLASS_ID)? OPERATOR_ASSIGNMENT expr
+  // s : String <- "Hello"; | s <- "Hello"; | s : String;
+  variable (OPERATOR_ASSIGNMENT expr)? 
 ;
 
 feature : 
-  OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? RIGHT_PARENTESIS COLON CLASS_ID LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY
-  | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS
-  | var_declarations
-;
+  // fun(...) { expr }
+  OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? 
+    RIGHT_PARENTESIS COLON CLASS_ID 
+    LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY          # funDeclaration
+  | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS      # objInit
+  | var_declarations                                    # varDeclarations                
+;   
 r_class :
-  RESERVED_CLASS CLASS_ID (RESERVED_INHERITS CLASS_ID)? LEFT_KEY (feature SEMI_COLON)+ RIGHT_KEY
+  CLASS CLASS_ID (INHERITS CLASS_ID)? 
+    LEFT_KEY (feature SEMI_COLON)+ RIGHT_KEY
 ;
 program : 
   (r_class SEMI_COLON)+
