@@ -1,43 +1,16 @@
 from antlr4 import *
+from reader import resolveEntryPoint
+
 from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
-from grammar.YalpListener import YalpListener
 from grammar.YalpVisitor import YalpVisitor
 
-input_string = '''
-class DB {
-  -- this is another comment
-  helloString : String <- "Hello";
-  byeString : String <- "Bye";
+from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject, FunctionsTable
 
-  g(y:String) : Int {
-    y.concat(s, "wuuu");
-    1 - 3 * (2 - 3);
-    1 = true;
-    1 + "1";
-    1 + 1;
-  };
+entry_file = 'class.txt'
+input_string = resolveEntryPoint(entry_file)
 
-  flag : Bool <- true;
-  thisAnotherFun(y:Int, well:String, pepe:Bool) : Int {
-    while flag = true loop
-      flag <- false
-    pool;
-  };
-};
-
-class DB2 {
-  s : Int <- 1;
-  blue : Bool <- true;
-  f() : Int {
-    if blue then
-      s <- s + 1 - 3 * (2 - 3)
-    else
-      s <- 34 * (5 + 23) / 23 + 32
-    fi;
-  };
-};
-'''
+# print(input_string)
 
 TYPES = {
   'Int-OPERATOR_PLUS-Int': 'Int',
@@ -61,11 +34,32 @@ TYPES = {
   'String-OPERATOR_LESS_EQUAL-String': 'Bool',
 }
 
+ERROR_STRING = 'ERROR'
+default_init = {
+  'Int': 0,
+  'Bool': 'false',
+}
+uninherable = ['Bool', 'Int', 'String']
+unoverloading = ['Object', 'IO', 'Bool', 'Int', 'String']
+
+classes_table = ClassesTable()
+variables_table = VariablesTable()
+
 class TypeCollectorVisitor(YalpVisitor):
   def __init__(self):
     super().__init__()
     self.types = {}
     self.parser = parser
+    self.check_later = {}
+
+  # This is to check if it inherets first and then the class is defined (the one inhered)
+  def checkPending(self): 
+    for key in self.check_later:
+      if (classes_table.contains(key)): continue
+      class_name = self.check_later[key]
+      print('>> Error in class', class_name, 'cannot inheret from class', key, 'since it doesnt exists')
+      self.types[class_name] = ERROR_STRING 
+
 
   # Visit a parse tree produced by YalpParser#string.
   def visitString(self, ctx:YalpParser.StringContext):
@@ -96,20 +90,37 @@ class TypeCollectorVisitor(YalpVisitor):
 
     return self.visitChildren(ctx)
 
-  # Visit a parse tree produced by YalpParser#objectId.
-  def visitObjectId(self, ctx:YalpParser.ObjectIdContext):
-    return self.visitChildren(ctx)
+  # Visit a parse tree produced by YalpParser#r_class.
+  def visitR_class(self, ctx:YalpParser.R_classContext):
+    class_name = ctx.getChild(1).getText()
+    is_inherable = ctx.getChild(2).getText()
+    parent = None
+    error = False
 
-  # Visit a parse tree produced by YalpParser#formal.
-  def visitFormal(self, ctx:YalpParser.FormalContext):
-    return self.visitChildren(ctx)
+    if ('inherits' == is_inherable.lower()):
+      inhered_class = ctx.getChild(3).getText()
+      if (inhered_class in uninherable):
+        error = True
+        print('>> Error in class', class_name, 'cannot inheret from class', inhered_class)
+      else:
+        parent = inhered_class
 
-  # Visit a parse tree produced by YalpParser#var_declarations.
-  def visitVar_declarations(self, ctx:YalpParser.Var_declarationsContext):
-    return self.visitChildren(ctx)
+      print('wuuu', inhered_class, class_name)
+      if (not classes_table.contains(inhered_class)):
+        self.check_later[inhered_class] = class_name
 
-  # Visit a parse tree produced by YalpParser#feature.
-  def visitFeature(self, ctx:YalpParser.FeatureContext):
+    if (classes_table.contains(class_name)):
+      error = True
+      if (class_name in unoverloading):
+        print('>> Error in class', class_name, 'cannot override this class')
+      else:
+        print('>> Error in class', class_name, 'is already defined')
+
+    if (error):
+      self.types[class_name] = ERROR_STRING 
+
+    classes_table.add(class_name, parent)
+
     return self.visitChildren(ctx)
 
 class PostOrderVisitor(YalpVisitor):
@@ -117,7 +128,37 @@ class PostOrderVisitor(YalpVisitor):
     self.parser = parser
     self.types = types
 
-  def visit(self, tree):
+  def getChildContext(self, tree, context):
+    node_type = type(tree)
+    if (node_type == YalpParser.R_classContext):
+      return tree.getChild(1).getText()
+      
+    if (node_type == YalpParser.FunDeclarationContext):
+      return tree.getChild(0).getText()
+    return context
+
+  def addVariable(self, tree, type, context):
+    child_count = tree.getChildCount()
+    var_name = tree.getChild(0).getText()
+    value = None
+
+    if (child_count > 1):
+      value = tree.getChild(2).getText()
+
+    added = variables_table.add(
+      var_name,
+      type,
+      context,
+      value
+    )
+
+    if (not added):
+      print('>>>>>>', var_name, 'already exists in context', context)
+      return ERROR_STRING
+
+    return type
+
+  def visit(self, tree, context = None):
     if isinstance(tree, TerminalNode):
       # Handle terminal nodes (tokens) here if needed
       key = self.parser.symbolicNames[tree.symbol.type]
@@ -138,47 +179,60 @@ class PostOrderVisitor(YalpVisitor):
     else:
       # Visit the children first
       child_types = []
+      node_type = type(tree)
       child_count = tree.getChildCount()
+      child_context = self.getChildContext(tree, context)
+
       for i in range(child_count):
         child = tree.getChild(i)
-        child_type = self.visit(child)
+        child_type = self.visit(child, child_context)
 
         child_types.append(child_type)
 
       if child_count == 1:
         return child_types[0]
 
-      node_type = type(tree)
-    
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool'):
-          print('>>>>>>', child_types[1], 'is a non valid operation')
-          return 'ERROR'
+          print('>>>>>>', child_types[1], 'is a non valid operation for while')
+          return ERROR_STRING
 
-        if ('ERROR' in child_types):
-          return 'ERROR'
+        if (ERROR_STRING in child_types):
+          return ERROR_STRING
 
         # TODO: is void?
         return 'Void'
 
       if (node_type == YalpParser.IfTenseContext):
+
+        # TODO: implicit cast
         if (child_types[1] != 'Bool'):
-          print('>>>>>>', child_types[1], 'is a non valid operation')
-          return 'ERROR'
+          print('>>>>>>', child_types[1], 'is a non valid operation for if')
+          return ERROR_STRING
 
-        if ('ERROR' in child_types):
-          return 'ERROR'
+        if (ERROR_STRING in child_types):
+          return ERROR_STRING
+        
+        if (child_types[3] == child_types[5]):
+          return child_types[3]
 
-        # TODO: is void?
+        # TODO: when child types are diff then check parents
+        print('wuuuu>>>',child_types)
         return 'Void'
 
       if (
         node_type == YalpParser.VariableContext
-        or node_type == YalpParser.Var_declarationsContext
         or node_type == YalpParser.FormalContext
       ):
         return child_types[2]
       
+      if (node_type == YalpParser.Var_declarationsContext):
+        return self.addVariable(
+          tree,
+          child_types[2],
+          context
+        )
+
       if (node_type == YalpParser.ParentesisContext):
         return child_types[1]
 
@@ -197,7 +251,7 @@ class PostOrderVisitor(YalpVisitor):
           else:
             print('>>>> Cannot compare', leftOperand, 'with', rightOperand)
 
-          return 'ERROR'
+          return ERROR_STRING
 
         return TYPES[key]
 
@@ -205,64 +259,60 @@ class PostOrderVisitor(YalpVisitor):
         return 'Void'
 
       if (node_type == YalpParser.FunDeclarationContext):
-        if ('ERROR' in child_types):
-          return 'ERROR'
+        print(context, tree.getChild(0).getText())
+        if (ERROR_STRING in child_types):
+          return ERROR_STRING
 
         # TODO: GEt fun type
         return 'Int'
 
       if (node_type == YalpParser.AssignmentContext):
-        if ('ERROR' in child_types):
+        if (ERROR_STRING in child_types):
           variable = tree.getChild(0)
           print('Cannot assign to', variable.getText())
-          return 'ERROR'
+          return ERROR_STRING
 
         if (child_types[0] != child_types[2]):
+          # TODO: Chacke 
           variable = tree.getChild(0)
           print('Cannot assign', child_types[0], 'with', child_types[2])
-          return 'ERROR'
+          return ERROR_STRING
 
         return child_types[0]
       
       if (node_type == YalpParser.FunctionCallContext):
-        if ('ERROR' in child_types):
-          return 'ERROR'
+        if (ERROR_STRING in child_types):
+          return ERROR_STRING
         
         # TODO: Make this get the function type
         return 'Void'
 
       if (node_type == YalpParser.R_classContext):
-        if ('ERROR' in child_types):
-          return 'ERROR'
+        print(tree.getChild(1).getText(), child_types)
+        if (ERROR_STRING in child_types):
+          return ERROR_STRING
         
-        return tree.getText()[5:].split('{')[0]
+        return tree.getChild(1).getText()
 
       class_types = list(filter(lambda a: a != 'Void', child_types))
 
-      if ('ERROR' in class_types):
+      if (ERROR_STRING in class_types):
         print ('Type validation failed', class_types)
         return
 
       print('Type validation completed', class_types)
 
-# Create an input stream of the expression
 input_stream = InputStream(input_string)
-
-# Create a lexer that reads from the input stream
 lexer = YalpLexer(input_stream)
-
-# Create a stream of tokens from the lexer
 token_stream = CommonTokenStream(lexer)
-
-# Create a parser that reads from the token stream
 parser = YalpParser(token_stream)
-
-# Start the parsing process by calling the 'r' rule
 parse_tree = parser.r()
 
 visitor = TypeCollectorVisitor()
 visitor.visit(parse_tree)
-# print("Types:", visitor.types)
+visitor.checkPending()
 
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
+
+# print(variables_table)

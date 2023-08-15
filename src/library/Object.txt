@@ -1,0 +1,16 @@
+class Object {
+
+  -- El método abort() detiene la ejecución del programa con un mensaje de error. El método
+  -- type_name, retorna una cadena con el nombre de la clase a la que pertenece el objeto. El
+  -- método copy, crea una copia shallow del objeto.
+
+  abort() : Object {
+    
+  };
+
+  type_name() : String {
+    
+  };
+
+
+};

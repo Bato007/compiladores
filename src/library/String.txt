@@ -1,0 +1,24 @@
+class String {
+
+    -- El método length() devuelve la longitud del parámetro self
+    -- El método concat, concatena el parámetro s a la derecha de self
+    -- El método substr, devuelve la subcadena del self, comenzando en la posición i, con
+    -- una longitud l. La posición de los caracteres en la cadena comienzan en 0.
+    -- En tiempo de ejecución, el método substr devuelve un error si los índices están fuera
+    -- de rango.
+    -- El valor default de inicialización para un String es ”” [cadena vacía]
+    -- No es posible heredar o redefinir String
+
+  length() : Int {
+    5
+  };
+
+  concat(other: String) : String {
+    "test"
+  };
+
+  substr(i: Int, l: Int) : String {
+    "test"
+  };
+
+};

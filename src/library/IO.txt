@@ -1,0 +1,24 @@
+class IO {
+
+  -- Los métodos out_string y out_int, colocan en pantalla el parámetro x.
+  -- El método in_string() lee una cadena de la entrada estándar, hasta un caracter de
+  -- nueva línea (sin incluirlo).
+  -- El método in_int() lee un número entero de la entrada estándar.
+
+  out_string(x: String) : SELF_TYPE {
+    
+  };
+
+  out_int(x: Int) : SELF_TYPE {
+    
+  };
+
+  in_string() : String {
+    
+  };
+
+  in_int() : Int {
+    
+  };
+
+};

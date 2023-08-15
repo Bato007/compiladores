@@ -12,3 +12,4 @@
 /**/*.java
 /**/*.tokens
 /**/*.interp
+/grammar/*.png

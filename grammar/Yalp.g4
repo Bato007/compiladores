@@ -72,7 +72,7 @@ ERROR :
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | Int)* ;
 OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | Int | '_' | '.')* ;
 
-OBJ_TYPE :
+type :
   CLASS_ID
   | RESERVED_SELF_TYPE
 ;
@@ -150,14 +150,14 @@ var_declarations :
 feature : 
   // fun(...) { expr }
   OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? 
-    RIGHT_PARENTESIS COLON CLASS_ID 
+    RIGHT_PARENTESIS COLON type 
     LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY          # funDeclaration
   | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS      # objInit
   | var_declarations                                    # varDeclarations                
 ;   
 r_class :
   CLASS CLASS_ID (INHERITS CLASS_ID)? 
-    LEFT_KEY (feature SEMI_COLON)+ RIGHT_KEY
+    LEFT_KEY (feature SEMI_COLON)* RIGHT_KEY
 ;
 program : 
   (r_class SEMI_COLON)+
