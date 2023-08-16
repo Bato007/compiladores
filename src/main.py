@@ -254,6 +254,8 @@ class PostOrderVisitor(YalpVisitor):
 
         child_types.append(child_type)
 
+      variables = tree.getChild(0)
+
       if child_count == 1:
         return child_types[0]
 
@@ -326,8 +328,7 @@ class PostOrderVisitor(YalpVisitor):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
 
-        self.addFunction(tree, child_types, context)
-        return 'Int'
+        return self.addFunction(tree, child_types, context)
 
       if (node_type == YalpParser.AssignmentContext):
         if (ERROR_STRING in child_types):
@@ -344,9 +345,15 @@ class PostOrderVisitor(YalpVisitor):
         return child_types[0]
       
       if (node_type == YalpParser.FunctionCallContext):
+        variables = tree.getChild(0).getText().split(".")
+        params =  tree.getChild(2).getText()
+
+        print(functions_table.get(variables, params))
+
         if (ERROR_STRING in child_types):
           return ERROR_STRING
         
+
         # TODO: Make this get the function type
         return 'Void'
 

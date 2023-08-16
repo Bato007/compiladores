@@ -2,7 +2,7 @@ class VariableObject(object):
 	def __init__(self, name, type, context, init_value=None):
 		self.name = name
 		self.type = type
-		self.contex = context
+		self.context = context
 		self.init_value = init_value
 	
 
@@ -46,7 +46,7 @@ class VariablesTable(object):
 			details += f'  {key} : ' + '{\n'
 			details += f'\tname: {variable.name}\n'
 			details += f'\ttype: {variable.type}\n'
-			details += f'\tcontex: {variable.contex}\n'
+			details += f'\tcontext: {variable.context}\n'
 			details += f'\tvalue: {variable.init_value}\n'
 		details += '}'
 		return details
@@ -93,6 +93,23 @@ class FunctionsTable(object):
 
 		self.table[key] = variable
 		return True
+	
+	def get(
+		self,
+		variables,
+		params
+	):
+		print("variables ", variables, "  params: ", params)
+		table = None
+		for i in range(len(variables)):
+			if (i == 0):
+				table = self.table[variables[-1]]
+
+		
+		# for var in variables:
+
+
+		# print(self.table.keys())
 
 class ClassObject(object):
 	def __init__(self, name, parent = 'Object') -> None:
