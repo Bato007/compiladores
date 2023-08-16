@@ -1,5 +1,5 @@
 class VariableObject(object):
-	def __init__(self, name, type, context, init_value):
+	def __init__(self, name, type, context, init_value=None):
 		self.name = name
 		self.type = type
 		self.contex = context
@@ -57,16 +57,42 @@ class FunctionObject(object):
 		name,
 		context,
 		num_params,
-		return_type
+		return_type,
+		param_types = []
 	) -> None:
 		self.name = name
 		self.context = context
 		self.num_params = num_params
 		self.return_type = return_type
+		self.param_types = param_types
 
 class FunctionsTable(object):
 	def __init__(self) -> None:
 		self.table = {}
+	
+	def add(
+		self,
+		name,
+		context,
+		num_params,
+		return_type,
+		param_types
+	):
+		key = context + '-' + name
+		if (key in self.table.keys()):
+			return False
+
+		
+		variable = FunctionObject(
+			name,
+			context,
+			num_params,
+			return_type,
+			param_types
+		)
+
+		self.table[key] = variable
+		return True
 
 class ClassObject(object):
 	def __init__(self, name, parent = 'Object') -> None:

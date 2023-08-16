@@ -45,6 +45,7 @@ unoverloading = ['Object', 'IO', 'Bool', 'Int', 'String']
 
 classes_table = ClassesTable()
 variables_table = VariablesTable()
+functions_table = FunctionsTable()
 
 class TypeCollectorVisitor(YalpVisitor):
   def __init__(self):
@@ -172,17 +173,54 @@ class PostOrderVisitor(YalpVisitor):
 
     return type
 
-  def addFunction(self, node, child_types):
-    child_count = node.getChildCount()
-    last_index = child_count - 1
+  def addFunction(self, tree, child_types, context):
+    fun_name = tree.getChild(0).getText()
+    param_types = []
 
-    fun_name = node.getChild(0).getText()
-    fun_return_type = child_types[last_index - 3]
-    num_params = math.ceil((child_count - 9) / 2)
-    fun_code_type = child_types[last_index - 1]
+    i = 0
+    while True:
+      if (type(tree.getChild(i)) == YalpParser.FormalContext):
+        formal = tree.getChild(i)
+        variable_name = formal.getChild(0).getText()
+        variable_type = formal.getChild(-1).getText()
+        # print("--->", variable_name, " : ", variable_type)
+        param_types.append(
+          VariableObject(variable_name, variable_type, context)
+        )
+      elif (str(tree.getChild(i)) == ')'):
+        break
+      i += 1
+  
+    num_params = len(param_types)
 
-    print(fun_name, fun_return_type, num_params, fun_code_type, child_types)
+    inside_parenthesis = (num_params * 2)  - 1 if num_params > 0 else 0
+    fun_return_type = child_types[2 + inside_parenthesis + 2]
+
+    index_last_expression_type = -3 if tree.getChild(-2).getText() == ';' else -2
+    fun_code_type = child_types[index_last_expression_type]
+
+    # print("-"*20)
+    # print("   child_types: ", child_types)
+    # print("   context: ", context)
+    # print("   fun_name: ", fun_name)
+    # print("   num_params: ", num_params)
+    # print("   fun_return_type: ", fun_return_type)
+    # print("   fun_code_type: ", fun_code_type)
+    # print("-"*20)
     
+    
+    if (fun_return_type == fun_code_type):
+      functions_table.add(
+        fun_name,
+        context,
+        num_params,
+        fun_return_type,
+        param_types
+      )
+    else:
+      print('>>>>>>', fun_name, " has ", fun_return_type, ' vs fun_code_type ', fun_code_type)
+      return ERROR_STRING
+
     return fun_return_type
 
   def visit(self, tree, context = None):
@@ -288,7 +326,7 @@ class PostOrderVisitor(YalpVisitor):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
 
-        # return self.addFunction(...)
+        self.addFunction(tree, child_types, context)
         return 'Int'
 
       if (node_type == YalpParser.AssignmentContext):
