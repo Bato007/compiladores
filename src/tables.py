@@ -52,8 +52,17 @@ class VariablesTable(object):
 		return details
 
 class FunctionObject(object):
-	def __init__(self) -> None:
-		pass
+	def __init__(
+		self,
+		name,
+		context,
+		num_params,
+		return_type
+	) -> None:
+		self.name = name
+		self.context = context
+		self.num_params = num_params
+		self.return_type = return_type
 
 class FunctionsTable(object):
 	def __init__(self) -> None:
@@ -96,6 +105,3 @@ class ClassesTable(object):
 		if (key not in self.table.keys()):
 			return False
 		return True
-
-
-

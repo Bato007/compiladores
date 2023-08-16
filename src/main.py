@@ -1,3 +1,4 @@
+import math
 from antlr4 import *
 from reader import resolveEntryPoint
 
@@ -52,6 +53,14 @@ class TypeCollectorVisitor(YalpVisitor):
     self.parser = parser
     self.check_later = {}
 
+  # Checks if the program contains main class and the
+  def checkMain():
+    key = 'Main'
+    if (not classes_table.contains(key)):
+      print('>> Error Main class doesnt exists')
+
+    mainClass = classes_table[key]
+
   # This is to check if it inherets first and then the class is defined (the one inhered)
   def checkPending(self): 
     for key in self.check_later:
@@ -59,7 +68,6 @@ class TypeCollectorVisitor(YalpVisitor):
       class_name = self.check_later[key]
       print('>> Error in class', class_name, 'cannot inheret from class', key, 'since it doesnt exists')
       self.types[class_name] = ERROR_STRING 
-
 
   # Visit a parse tree produced by YalpParser#string.
   def visitString(self, ctx:YalpParser.StringContext):
@@ -94,21 +102,27 @@ class TypeCollectorVisitor(YalpVisitor):
   def visitR_class(self, ctx:YalpParser.R_classContext):
     class_name = ctx.getChild(1).getText()
     is_inherable = ctx.getChild(2).getText()
-    parent = None
+    parent = 'Object'
     error = False
 
+    # If the class has a parent
     if ('inherits' == is_inherable.lower()):
       inhered_class = ctx.getChild(3).getText()
-      if (inhered_class in uninherable):
+
+      if (
+        inhered_class in uninherable    # Checks if its String, Bool or Int
+        or inhered_class == class_name  # Avoids recursive herency
+      ):
         error = True
         print('>> Error in class', class_name, 'cannot inheret from class', inhered_class)
       else:
         parent = inhered_class
 
-      print('wuuu', inhered_class, class_name)
+      # Checks if the class is not defined yet
       if (not classes_table.contains(inhered_class)):
         self.check_later[inhered_class] = class_name
 
+    # Class is already defined
     if (classes_table.contains(class_name)):
       error = True
       if (class_name in unoverloading):
@@ -158,6 +172,19 @@ class PostOrderVisitor(YalpVisitor):
 
     return type
 
+  def addFunction(self, node, child_types):
+    child_count = node.getChildCount()
+    last_index = child_count - 1
+
+    fun_name = node.getChild(0).getText()
+    fun_return_type = child_types[last_index - 3]
+    num_params = math.ceil((child_count - 9) / 2)
+    fun_code_type = child_types[last_index - 1]
+
+    print(fun_name, fun_return_type, num_params, fun_code_type, child_types)
+    
+    return fun_return_type
+
   def visit(self, tree, context = None):
     if isinstance(tree, TerminalNode):
       # Handle terminal nodes (tokens) here if needed
@@ -200,8 +227,7 @@ class PostOrderVisitor(YalpVisitor):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
 
-        # TODO: is void?
-        return 'Void'
+        return 'Object'
 
       if (node_type == YalpParser.IfTenseContext):
 
@@ -217,7 +243,7 @@ class PostOrderVisitor(YalpVisitor):
           return child_types[3]
 
         # TODO: when child types are diff then check parents
-        print('wuuuu>>>',child_types)
+        # print('wuuuu>>>',child_types)
         return 'Void'
 
       if (
@@ -259,11 +285,10 @@ class PostOrderVisitor(YalpVisitor):
         return 'Void'
 
       if (node_type == YalpParser.FunDeclarationContext):
-        print(context, tree.getChild(0).getText())
         if (ERROR_STRING in child_types):
           return ERROR_STRING
 
-        # TODO: GEt fun type
+        # return self.addFunction(...)
         return 'Int'
 
       if (node_type == YalpParser.AssignmentContext):
@@ -288,7 +313,7 @@ class PostOrderVisitor(YalpVisitor):
         return 'Void'
 
       if (node_type == YalpParser.R_classContext):
-        print(tree.getChild(1).getText(), child_types)
+        # print(tree.getChild(1).getText(), child_types)
         if (ERROR_STRING in child_types):
           return ERROR_STRING
         
@@ -315,4 +340,4 @@ visitor.checkPending()
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
 
-# print(variables_table)
+print(variables_table)

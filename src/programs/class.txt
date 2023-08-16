@@ -1,12 +1,10 @@
-class DB inherits DB23 {
+class DB {
   -- this is another comment
   helloString : String <- "Hello";
   byeString : String <- "Bye";
 
   g(y:String) : Int {
     y.concat(s, "wuuu");
-    1 - 3 * (2 - 3);
-    1 + 1;
   };
 
   flag : Bool <- true;
@@ -22,19 +20,6 @@ class DB2 {
   blue : Bool <- true;
   f() : Int {{
 
-    if blue then
-      s <- s + 1 - 3 * (2 - 3)
-    else
-      s <- 34 * (5 + 23) / 23 + 32
-    fi;
-  };
-  };
-};
-
-class String {
-  s : Int <- 1;
-  blue : Bool <- true;
-  f() : Int {{
     if blue then
       s <- s + 1 - 3 * (2 - 3)
     else
