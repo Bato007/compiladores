@@ -1,17 +1,32 @@
+class Main {
+  -- this is another comment
+  main() : Object {
+    "temp"
+  };
+};
+
 class DB {
   -- this is another comment
   helloString : String <- "Hello";
   byeString : String <- "Bye";
 
   g(y:String) : Int {
-    y.concat(s, "wuuu");
+    y.concat(s, "wuuu")
   };
 
   flag : Bool <- true;
   thisAnotherFun(y:Int, well:String, pepe:Bool) : Int {
     while flag = true loop
       flag <- false
-    pool;
+    pool
+  };
+
+  thisIsOther() : String {
+    {
+      123213 + 123123;
+      123 - 32;
+      "sdfkj";
+    }
   };
 };
 
@@ -23,6 +38,6 @@ class DB2 {
       s <- s + 1 - 3 * (2 - 3)
     else
       s <- 34 * (5 + 23) / 23 + 32
-    fi;
+    fi
   };
 };

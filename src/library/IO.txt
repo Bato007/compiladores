@@ -6,19 +6,19 @@ class IO {
   -- El método in_int() lee un número entero de la entrada estándar.
 
   out_string(x: String) : SELF_TYPE {
-    
+    self
   };
 
   out_int(x: Int) : SELF_TYPE {
-    
+    self
   };
 
   in_string() : String {
-    
+    "temp"
   };
 
   in_int() : Int {
-    
+    0
   };
 
 };

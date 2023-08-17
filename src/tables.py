@@ -5,6 +5,14 @@ class VariableObject(object):
 		self.context = context
 		self.init_value = init_value
 	
+	def __str__(self):
+		details = '{\n'
+		details += f'  name: {self.name}\n'
+		details += f'  type: {self.type}\n'
+		details += f'  context: {self.context}\n'
+		details += f'  value: {self.init_value}\n'
+		details += '}'
+		return details
 
 class VariablesTable(object):
 	def __init__(self) -> None:
@@ -39,6 +47,22 @@ class VariablesTable(object):
 		self.table[key] = variable
 		return True
 
+	def contains(self, var_name, var_context):
+		key = var_context + '-' + var_name
+		if (key in self.table.keys()):
+			return True
+		return False
+	
+	def get(
+		self,
+		var_name,
+		var_context
+	):
+		key = var_context + '-' + var_name
+		if (not self.contains(var_name, var_context)): return None
+
+		return self.table.get(key)
+
 	def __str__(self):
 		details = '{\n'
 		for key in self.table:
@@ -56,39 +80,50 @@ class FunctionObject(object):
 		self,
 		name,
 		context,
-		num_params,
-		return_type,
-		param_types = []
+		return_type = 'Void',
+		num_params = 0,
 	) -> None:
 		self.name = name
 		self.context = context
 		self.num_params = num_params
 		self.return_type = return_type
-		self.param_types = param_types
+		self.param_types = []
+		self.param_names = []
+
+	def addParam(self, param_name, param_type):
+		self.param_types.append(param_type)
+		self.param_names.append(param_name)
+		self.num_params = self.num_params + 1
+	
+	def __str__(self):
+		details = '{\n'
+		details += f'  name: {self.name}\n'
+		details += f'  context: {self.context}\n'
+		details += f'  return_type: {self.return_type}\n'
+		details += f'  num_params: {self.num_params}\n'
+		details += f'  param_types: {self.param_types}\n'
+		details += f'  param_names: {self.param_names}\n'
+		details += '}'
+		return details
 
 class FunctionsTable(object):
 	def __init__(self) -> None:
 		self.table = {}
-	
+
 	def add(
 		self,
-		name,
-		context,
-		num_params,
+		fun_name,
+		class_name,
 		return_type,
-		param_types
 	):
-		key = context + '-' + name
+		key = class_name + '-' + fun_name
 		if (key in self.table.keys()):
 			return False
 
-		
 		variable = FunctionObject(
-			name,
-			context,
-			num_params,
+			fun_name,
+			class_name,
 			return_type,
-			param_types
 		)
 
 		self.table[key] = variable
@@ -96,20 +131,13 @@ class FunctionsTable(object):
 	
 	def get(
 		self,
-		variables,
-		params
+		fun_name,
+		class_name
 	):
-		print("variables ", variables, "  params: ", params)
-		table = None
-		for i in range(len(variables)):
-			if (i == 0):
-				table = self.table[variables[-1]]
-
-		
-		# for var in variables:
-
-
-		# print(self.table.keys())
+		key = class_name + '-' + fun_name
+		if (key not in self.table.keys()):
+			return None
+		return self.table.get(key)
 
 class ClassObject(object):
 	def __init__(self, name, parent = 'Object') -> None:

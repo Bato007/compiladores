@@ -52,6 +52,8 @@ class TypeCollectorVisitor(YalpVisitor):
     super().__init__()
     self.types = {}
     self.parser = parser
+    self.class_context = ''
+    self.fun_context = ''
     self.check_later = {}
 
   # Checks if the program contains main class and the
@@ -70,6 +72,15 @@ class TypeCollectorVisitor(YalpVisitor):
       print('>> Error in class', class_name, 'cannot inheret from class', key, 'since it doesnt exists')
       self.types[class_name] = ERROR_STRING 
 
+  # Adds variable to table
+  def addVariable(self, var_name, var_type, var_context, var_default = None):
+    return variables_table.add(
+      var_name,
+      var_type,
+      var_context,
+      var_default
+    )
+
   # Visit a parse tree produced by YalpParser#string.
   def visitString(self, ctx:YalpParser.StringContext):
     self.types[ctx.getText()] = 'String'
@@ -84,18 +95,66 @@ class TypeCollectorVisitor(YalpVisitor):
   def visitInt(self, ctx:YalpParser.IntContext):
     self.types[ctx.getText()] = 'Int'
     return self.visitChildren(ctx)
+  
+  # Visit a parse tree produced by YalpParser#var_declarations.
+  def visitVar_declarations(self, ctx:YalpParser.Var_declarationsContext):
+    var_name = ctx.getChild(0).getText()
+    var_type = ctx.getChild(2).getText()
+    var_value = None
 
-  # Visit a parse tree produced by YalpParser#variable.
-  def visitVariable(self, ctx:YalpParser.VariableContext):
-    if ctx.getChildCount() == 1:
-      child = ctx.getChild(0)
+    if (ctx.getChildCount() > 3):
+      var_value = ctx.getChild(-1).getText()
 
-      key = self.parser.symbolicNames[child.symbol.type]
-      self.types[child.getText()] = key
-    else:
-      varName = ctx.getChild(0)
-      varType = ctx.getChild(2)
-      self.types[varName.getText()] = varType.getText()
+
+    added = self.addVariable(
+      var_name,
+      var_type,
+      self.class_context,
+      var_value
+    )
+
+    if (not added):
+      print('>>>> Variable', var_name, 'already defined in class ', self.class_context)
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#formal.
+  def visitFormal(self, ctx:YalpParser.FormalContext):
+    var_name = ctx.getChild(0).getText()
+    var_type = ctx.getChild(-1).getText()
+    var_context = self.class_context + '-' + self.fun_context
+
+    added = self.addVariable(
+      var_name,
+      var_type,
+      var_context
+    )
+
+    if (not added):
+      print('>>>> Variable', var_name, 'already defined in function ', self.fun_context)
+
+    function = functions_table.get(self.fun_context, self.class_context)
+    function.addParam(var_name, var_type)
+
+    return self.visitChildren(ctx)
+
+  # Visit a parse tree produced by YalpParser#funDeclaration.
+  def visitFunDeclaration(self, ctx:YalpParser.FunDeclarationContext):
+    fun_name = ctx.getChild(0).getText()
+    fun_context = self.class_context
+    fun_return_type = ctx.getChild(-4).getText()
+    self.fun_context = fun_name
+
+    if (fun_return_type == 'SELF_TYPE'):
+      fun_return_type = fun_context
+
+    added = functions_table.add(
+      fun_name,
+      fun_context,
+      fun_return_type
+    )
+
+    if (not added):
+      print('>>>> Function', fun_name, 'already defined in', fun_context)
 
     return self.visitChildren(ctx)
 
@@ -105,6 +164,7 @@ class TypeCollectorVisitor(YalpVisitor):
     is_inherable = ctx.getChild(2).getText()
     parent = 'Object'
     error = False
+    self.class_context = class_name
 
     # If the class has a parent
     if ('inherits' == is_inherable.lower()):
@@ -142,122 +202,81 @@ class PostOrderVisitor(YalpVisitor):
   def __init__(self, types):
     self.parser = parser
     self.types = types
-
-  def getChildContext(self, tree, context):
-    node_type = type(tree)
+    self.class_context = ''
+    self.fun_context = ''
+  
+  # This function will update the context of the current visited branch
+  def updateContext(self, node):
+    node_type = type(node)
     if (node_type == YalpParser.R_classContext):
-      return tree.getChild(1).getText()
+      self.class_context = node.getChild(1).getText()
       
     if (node_type == YalpParser.FunDeclarationContext):
-      return tree.getChild(0).getText()
-    return context
+      self.fun_context = node.getChild(0).getText()
 
-  def addVariable(self, tree, type, context):
-    child_count = tree.getChildCount()
-    var_name = tree.getChild(0).getText()
-    value = None
+  def getVarDeclarationType(self, node):
+    var_name = node.getChild(0).getText()
+    variable = variables_table.get(var_name, self.class_context)
 
-    if (child_count > 1):
-      value = tree.getChild(2).getText()
-
-    added = variables_table.add(
-      var_name,
-      type,
-      context,
-      value
-    )
-
-    if (not added):
-      print('>>>>>>', var_name, 'already exists in context', context)
+    if (variable is None):
+      print('>>>>>> Variable', var_name, 'doesnt exists in context', self.class_context)
       return ERROR_STRING
 
-    return type
+    return variable.type
 
-  def addFunction(self, tree, child_types, context):
-    fun_name = tree.getChild(0).getText()
-    param_types = []
+  def getFunctionDeclarationType(self, child_types):
+    function = functions_table.get(self.fun_context, self.class_context)
 
-    i = 0
-    while True:
-      if (type(tree.getChild(i)) == YalpParser.FormalContext):
-        formal = tree.getChild(i)
-        variable_name = formal.getChild(0).getText()
-        variable_type = formal.getChild(-1).getText()
-        # print("--->", variable_name, " : ", variable_type)
-        param_types.append(
-          VariableObject(variable_name, variable_type, context)
-        )
-      elif (str(tree.getChild(i)) == ')'):
-        break
-      i += 1
-  
-    num_params = len(param_types)
+    if (function.return_type == child_types[-2]):
+      return function.return_type
 
-    inside_parenthesis = (num_params * 2)  - 1 if num_params > 0 else 0
-    fun_return_type = child_types[2 + inside_parenthesis + 2]
+    # TODO: Check superclass
+    print(function.context, function.return_type, child_types[-2])
+    return ERROR_STRING
 
-    index_last_expression_type = -3 if tree.getChild(-2).getText() == ';' else -2
-    fun_code_type = child_types[index_last_expression_type]
-
-    # print("-"*20)
-    # print("   child_types: ", child_types)
-    # print("   context: ", context)
-    # print("   fun_name: ", fun_name)
-    # print("   num_params: ", num_params)
-    # print("   fun_return_type: ", fun_return_type)
-    # print("   fun_code_type: ", fun_code_type)
-    # print("-"*20)
-    
-    
-    if (fun_return_type == fun_code_type):
-      functions_table.add(
-        fun_name,
-        context,
-        num_params,
-        fun_return_type,
-        param_types
-      )
-    else:
-      print('>>>>>>', fun_name, " has ", fun_return_type, ' vs fun_code_type ', fun_code_type)
-      return ERROR_STRING
-
-    return fun_return_type
-
-  def visit(self, tree, context = None):
+  def visit(self, tree):
     if isinstance(tree, TerminalNode):
-      # Handle terminal nodes (tokens) here if needed
-      key = self.parser.symbolicNames[tree.symbol.type]
+      if (tree.getText() in unoverloading): return tree.getText()
+      if (tree.getText() in ['SELF_TYPE', 'self']): return self.class_context
+      if (tree.getText() in self.types.keys()): return self.types[tree.getText()]
+      if (self.parser.symbolicNames[tree.symbol.type] != 'OBJ_ID'): return 'Void'
 
-      if (tree.getText() in self.types.keys()):
-        return self.types[tree.getText()]
-      elif (tree.getText() == 'String'):
-        return 'String'
-      elif (tree.getText() == 'Int'):
-        return 'Int'
-      elif (tree.getText() == 'Bool'):
-        return 'Bool'
-      elif (key == 'OBJ_ID'):
-        return key
-      else:
-        return 'Void'
+      obj_name = tree.getText()
+
+      # Variable defined in class
+      class_var = variables_table.get(obj_name, self.class_context)
+      if (class_var is not None):
+        return class_var.type
+
+      # Functions defined in class
+      class_fun = functions_table.get(obj_name, self.class_context)
+      if (class_fun is not None): 
+        return class_fun.return_type
+
+      # Variable defined in function
+      fun_var = variables_table.get(obj_name, self.class_context + '-' + self.fun_context)
+      if (fun_var is not None): 
+        return fun_var.type
+
+      print('-==============================', tree.getText())
+      return 'Void'
 
     else:
-      # Visit the children first
       child_types = []
       node_type = type(tree)
       child_count = tree.getChildCount()
-      child_context = self.getChildContext(tree, context)
+      self.updateContext(tree)
 
+      # Visit the children first
       for i in range(child_count):
         child = tree.getChild(i)
-        child_type = self.visit(child, child_context)
+        child_types.append(self.visit(child))
 
-        child_types.append(child_type)
-
-      variables = tree.getChild(0)
-
-      if child_count == 1:
-        return child_types[0]
+      if child_count == 1: return child_types[0]
+      if (node_type == YalpParser.ParentesisContext): return child_types[1]
+      if (node_type == YalpParser.InstructionsContext): return child_types[-3]
+      if (node_type == YalpParser.Var_declarationsContext): return self.getVarDeclarationType(tree)
+      if (node_type == YalpParser.FormalContext): return child_types[2]
 
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool'):
@@ -282,25 +301,10 @@ class PostOrderVisitor(YalpVisitor):
         if (child_types[3] == child_types[5]):
           return child_types[3]
 
-        # TODO: when child types are diff then check parents
+        # TODO: Check superclass
         # print('wuuuu>>>',child_types)
         return 'Void'
-
-      if (
-        node_type == YalpParser.VariableContext
-        or node_type == YalpParser.FormalContext
-      ):
-        return child_types[2]
       
-      if (node_type == YalpParser.Var_declarationsContext):
-        return self.addVariable(
-          tree,
-          child_types[2],
-          context
-        )
-
-      if (node_type == YalpParser.ParentesisContext):
-        return child_types[1]
 
       if (
         node_type == YalpParser.ArithmeticalContext
@@ -328,7 +332,7 @@ class PostOrderVisitor(YalpVisitor):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
 
-        return self.addFunction(tree, child_types, context)
+        return self.getFunctionDeclarationType(child_types)
 
       if (node_type == YalpParser.AssignmentContext):
         if (ERROR_STRING in child_types):
@@ -345,10 +349,10 @@ class PostOrderVisitor(YalpVisitor):
         return child_types[0]
       
       if (node_type == YalpParser.FunctionCallContext):
-        variables = tree.getChild(0).getText().split(".")
-        params =  tree.getChild(2).getText()
+        # variables = tree.getChild(0).getText().split(".")
+        # params =  tree.getChild(2).getText()
 
-        print(functions_table.get(variables, params))
+        print(tree.getText(), child_count, child_types)
 
         if (ERROR_STRING in child_types):
           return ERROR_STRING
@@ -382,7 +386,9 @@ visitor = TypeCollectorVisitor()
 visitor.visit(parse_tree)
 visitor.checkPending()
 
+print(visitor.types)
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
 
 print(variables_table)
+print(functions_table)

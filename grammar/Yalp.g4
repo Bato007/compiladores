@@ -70,7 +70,7 @@ ERROR :
 ;
 
 CLASS_ID : UPPER_CASE (LOWER_CASE | UPPER_CASE | Int)* ;
-OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | Int | '_' | '.')* ;
+OBJ_ID : LOWER_CASE (LOWER_CASE | UPPER_CASE | Int | '_')* ;
 
 type :
   CLASS_ID
@@ -83,21 +83,18 @@ expr :
   expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID 
     LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                             # functionCall
   // variable([expr params])
-  | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                      # functionCall
+  | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                      # absoluteFunctionCall
   // if expr then expr else expr fi
   | IF expr THEN expr ELSE expr FI                                              # ifTense
   // while expr loop expr pool
   | WHILE expr LOOP expr POOL                                                   # loopTense
   // { (expr;)+ }
-  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY (SEMI_COLON)*                         # instructions
+  | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY                                       # instructions
   // let OBJ_ID : TYPE_ID [ <- expr ] (, OBJ_ID : CLASS_ID [<- expr])* in expr
   | LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? 
     (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* IN expr          # letTense
   // new Date
   | NEW CLASS_ID                                                                # objCreation
-  // new List.cons(1).cons(2).cons(3).cons(4).cons(5)
-  | OPERATOR_DOT 
-    (OBJ_ID) LEFT_PARENTESIS (expr)* RIGHT_PARENTESIS  (SEMI_COLON)*            # functionCall
   // ~expr  
   | OPERATOR_TILDE expr                                                         # arithmetical
   // isvoid expr
@@ -122,37 +119,32 @@ expr :
   | OBJ_ID OPERATOR_ASSIGNMENT expr                                             # assignment
   // ( expr )
   | LEFT_PARENTESIS expr RIGHT_PARENTESIS                                       # parentesis
+  // variable
+  | OBJ_ID                                                                      # objectId
+  // self
+  | RESERVED_SELF                                                               # self
   // 1
   | Int                                                                         # int
   // example string
   | String                                                                      # string
   // true / false
   | Bool                                                                        # boolean
-  // variable
-  | OBJ_ID                                                                      # objectId
-  // self
-  | RESERVED_SELF                                                               # self
 ;  
 
 formal : 
   OBJ_ID COLON CLASS_ID
 ;
 
-variable : 
-  OBJ_ID (COLON CLASS_ID)? 
-;
-
 var_declarations :
   // s : String <- "Hello"; | s <- "Hello"; | s : String;
-  variable (OPERATOR_ASSIGNMENT expr)? 
+  OBJ_ID COLON type (OPERATOR_ASSIGNMENT expr)? 
 ;
 
 feature : 
   // fun(...) { expr }
   OBJ_ID LEFT_PARENTESIS (formal (COMMA formal)*)? 
     RIGHT_PARENTESIS COLON type 
-    LEFT_KEY ((expr) (SEMI_COLON)*)* RIGHT_KEY          # funDeclaration
-  | CLASS_ID LEFT_PARENTESIS expr RIGHT_PARENTESIS      # objInit
+    LEFT_KEY expr RIGHT_KEY                             # funDeclaration
   | var_declarations                                    # varDeclarations                
 ;   
 r_class :

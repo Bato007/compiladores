@@ -5,11 +5,11 @@ class Object {
   -- método copy, crea una copia shallow del objeto.
 
   abort() : Object {
-    
+    self
   };
 
   type_name() : String {
-    
+    "Name"
   };
 
 };
