@@ -4,6 +4,9 @@ class VariableObject(object):
 		self.type = type
 		self.context = context
 		self.init_value = init_value
+
+	def setError(self):
+		self.type = 'ERROR'
 	
 	def __str__(self):
 		details = '{\n'

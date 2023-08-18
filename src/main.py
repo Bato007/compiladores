@@ -36,6 +36,7 @@ TYPES = {
 }
 
 ERROR_STRING = 'ERROR'
+LIMIT = 50
 default_init = {
   'Int': 0,
   'Bool': 'false',
@@ -105,7 +106,6 @@ class TypeCollectorVisitor(YalpVisitor):
     if (ctx.getChildCount() > 3):
       var_value = ctx.getChild(-1).getText()
 
-
     added = self.addVariable(
       var_name,
       var_type,
@@ -114,7 +114,9 @@ class TypeCollectorVisitor(YalpVisitor):
     )
 
     if (not added):
-      print('>>>> Variable', var_name, 'already defined in class ', self.class_context)
+      print('>>>> Variable:', var_name, 'already defined in class', self.class_context)
+      variable = variables_table.get(var_name, self.class_context)
+      variable.setError()
     return self.visitChildren(ctx)
 
   # Visit a parse tree produced by YalpParser#formal.
@@ -130,7 +132,9 @@ class TypeCollectorVisitor(YalpVisitor):
     )
 
     if (not added):
-      print('>>>> Variable', var_name, 'already defined in function ', self.fun_context)
+      print('>>>> Variable:', var_name, 'already defined in function', self.fun_context)
+      variable = variables_table.get(var_name, var_context)
+      variable.setError()
 
     function = functions_table.get(self.fun_context, self.class_context)
     function.addParam(var_name, var_type)
@@ -162,9 +166,12 @@ class TypeCollectorVisitor(YalpVisitor):
   def visitR_class(self, ctx:YalpParser.R_classContext):
     class_name = ctx.getChild(1).getText()
     is_inherable = ctx.getChild(2).getText()
-    parent = 'Object'
+    parent = None
     error = False
     self.class_context = class_name
+
+    if (class_name != 'Object'):
+      parent = 'Object'
 
     # If the class has a parent
     if ('inherits' == is_inherable.lower()):
@@ -230,9 +237,20 @@ class PostOrderVisitor(YalpVisitor):
     if (function.return_type == child_types[-2]):
       return function.return_type
 
-    # TODO: Check superclass
-    print(function.context, function.return_type, child_types[-2])
-    return ERROR_STRING
+    if (child_types[-2] == 'Void'): return 'Void'
+
+    i = 0
+    parent_class = classes_table.get(child_types[-2]).getParent()
+    while (True):
+      if (function.return_type == parent_class): break
+      if (i == LIMIT or parent_class is None): 
+        print('>>> Return type of', child_types[-2], 'cannot be assigned to', function.return_type, function.name, function.context)
+        parent_class = ERROR_STRING
+        break
+      parent_class = classes_table.get(parent_class).getParent()
+      i += 1
+
+    return parent_class
 
   def visit(self, tree):
     if isinstance(tree, TerminalNode):
@@ -301,10 +319,23 @@ class PostOrderVisitor(YalpVisitor):
         if (child_types[3] == child_types[5]):
           return child_types[3]
 
-        # TODO: Check superclass
-        # print('wuuuu>>>',child_types)
-        return 'Void'
-      
+        i = 0
+        left_type = child_types[3]
+        right_type = classes_table.get(child_types[5]).getParent()
+        while True:
+          if (left_type == right_type): break
+          if (i == LIMIT): 
+            print('>>> Check super class of this')
+            left_type = ERROR_STRING
+            break
+
+          right_type = classes_table.get(right_type).getParent()
+          if (right_type is None):
+            right_type = child_types[5]
+            left_type = classes_table.get(left_type).getParent()
+
+          i += 1
+        return left_type
 
       if (
         node_type == YalpParser.ArithmeticalContext
@@ -386,9 +417,6 @@ visitor = TypeCollectorVisitor()
 visitor.visit(parse_tree)
 visitor.checkPending()
 
-print(visitor.types)
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
-
 print(variables_table)
-print(functions_table)

@@ -10,12 +10,12 @@ class DB {
   helloString : String <- "Hello";
   byeString : String <- "Bye";
 
-  g(y:String) : Int {
+  g(y:String, byeString:String) : Int {
     y.concat(s, "wuuu")
   };
 
   flag : Bool <- true;
-  thisAnotherFun(y:Int, well:String, pepe:Bool) : Int {
+  thisAnotherFun(y:Int, well:String, pepe:Bool) : Object {
     while flag = true loop
       flag <- false
     pool
@@ -37,7 +37,7 @@ class DB2 {
     if blue then
       s <- s + 1 - 3 * (2 - 3)
     else
-      s <- 34 * (5 + 23) / 23 + 32
+      3 + 3
     fi
   };
 };
