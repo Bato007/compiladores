@@ -58,12 +58,18 @@ class TypeCollectorVisitor(YalpVisitor):
     self.check_later = {}
 
   # Checks if the program contains main class and the
-  def checkMain():
+  def checkMain(self):
     key = 'Main'
     if (not classes_table.contains(key)):
       print('>> Error Main class doesnt exists')
 
-    mainClass = classes_table[key]
+    main_fun = functions_table.get('main', key)
+    if (
+      main_fun is None
+      or main_fun.num_params != 0
+      or main_fun.return_type != 'Object'
+    ):
+      print('>> Function main(): object {}; doesnt exists in Main class')
 
   # This is to check if it inherets first and then the class is defined (the one inhered)
   def checkPending(self): 
@@ -416,6 +422,7 @@ parse_tree = parser.r()
 visitor = TypeCollectorVisitor()
 visitor.visit(parse_tree)
 visitor.checkPending()
+visitor.checkMain()
 
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)

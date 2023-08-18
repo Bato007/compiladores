@@ -132,6 +132,12 @@ class FunctionsTable(object):
 		self.table[key] = variable
 		return True
 	
+	def contains(self, fun_name, fun_class):
+		key = fun_class + '-' + fun_name
+		if (key in self.table.keys()):
+			return True
+		return False
+	
 	def get(
 		self,
 		fun_name,

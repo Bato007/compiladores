@@ -1,6 +1,6 @@
 class Main {
   -- this is another comment
-  main() : Object {
+  main() : String {
     "temp"
   };
 };
