@@ -1,3 +1,5 @@
+from utils import compare_dicts_ignore_attribute
+
 class VariableObject(object):
 	def __init__(self, name, type, context, init_value=None):
 		self.name = name
@@ -148,6 +150,34 @@ class FunctionsTable(object):
 			return None
 		return self.table.get(key)
 
+	
+	def inheritFunctions(
+		self,
+		parent_class,
+		inherited_class
+	):
+		inner_table = {}
+		for key in self.table.keys():
+			possible_from_class = key.split("-")[0]
+			if (possible_from_class == parent_class):
+				parent_method = self.table.get(key)
+				inherited_key = f'{inherited_class}-{",".join(key.split("-")[1:])}'
+				
+				if (inherited_key in self.table.keys()):
+					# Se revisa que la firma sea la misma y se deja el metodo del hijo
+					child_method = self.table[inherited_key]
+
+					if (not compare_dicts_ignore_attribute(parent_method, child_method, "context")):
+						return False
+				else:
+					# Agreegamos el metodo
+					inner_table[inherited_key] = parent_method
+
+		for key in inner_table:
+			self.table[key] = inner_table[key]
+
+		return True
+	
 class ClassObject(object):
 	def __init__(self, name, parent = 'Object') -> None:
 		self.name = name

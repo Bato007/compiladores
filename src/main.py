@@ -204,6 +204,10 @@ class TypeCollectorVisitor(YalpVisitor):
       self.types[class_name] = ERROR_STRING 
 
     classes_table.add(class_name, parent)
+    ok_inherit = functions_table.inheritFunctions(parent, class_name)
+    if not (ok_inherit):
+      error = True
+      print('>> Error in class', class_name, 'cannot override method from parent', parent)
 
     return self.visitChildren(ctx)
 
@@ -284,6 +288,9 @@ class PostOrderVisitor(YalpVisitor):
   def varFunctionCall(self, node, child_types):
     var_type = child_types[0]
     fun_name = node.getChild(2).getText()
+    print("fun_name:", type(fun_name), fun_name)
+    print("child_types[4:-1]:", type(child_types[4:-1]), child_types[4:-1])
+    print("var_type:", type(var_type), var_type)
     return self.checkFunctionCall(fun_name, child_types[4:-1], var_type)
 
   def visit(self, tree):
@@ -427,6 +434,16 @@ class PostOrderVisitor(YalpVisitor):
           return ERROR_STRING
         
         return tree.getChild(1).getText()
+      
+      if node_type == YalpParser.ObjCreationContext:
+        variable = tree.getChild(0).getText()
+        name = tree.getChild(1)
+
+        if (variable == "new" and name != None):
+          if (classes_table.contains(name.getText())):
+            return name
+          else:
+            return ERROR_STRING
 
       class_types = list(filter(lambda a: a != 'Void', child_types))
 
