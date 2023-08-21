@@ -34,11 +34,12 @@ OPERATOR_ASSIGNMENT : '<-' ;
 
 fragment LOWER_CASE : [a-z] ;
 fragment UPPER_CASE : [A-Z] ;
+fragment OtherChars : [!@#$%^&*()`~;:'",.<>?/\\|]+ | ('[' | ']' | '{' | '}')+;
 
 Int : [0-9]+ ;
 
 QUOTE : '"' ;
-fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | Int) ;
+fragment BASE_STRING : (UPPER_CASE | LOWER_CASE | Int | OtherChars) ;
 fragment BACK_SLASH : '\\' ;
 fragment ESCAPE_SEQUENCES : BACK_SLASH (['"\\/bfnrt])*;
 fragment TEXT : (~["\r\n] | BASE_STRING | ESCAPE_SEQUENCES | WS)* ;
