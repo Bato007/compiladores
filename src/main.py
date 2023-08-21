@@ -37,10 +37,6 @@ TYPES = {
 
 ERROR_STRING = 'ERROR'
 LIMIT = 50
-default_init = {
-  'Int': 0,
-  'Bool': 'false',
-}
 uninherable = ['Bool', 'Int', 'String']
 unoverloading = ['Object', 'IO', 'Bool', 'Int', 'String']
 
@@ -258,6 +254,38 @@ class PostOrderVisitor(YalpVisitor):
 
     return parent_class
 
+  def checkFunctionCall(self, fun_name, full_params, class_name = None):
+    param_types = []
+    for i in range(0, len(full_params), 2):
+      param_types.append(full_params[i])
+
+    class_context = self.class_context if class_name is None else class_name
+
+    function = functions_table.get(fun_name, class_context)
+    if (function is None):
+      print('>>> Function doesnt exists in class', class_context)
+      return ERROR_STRING
+
+    if (len(param_types) != len(function.param_types)):
+      print('>>>', function.name, 'expecting', len(function.param_types), 'but got', len(param_types), 'params')
+      return ERROR_STRING
+
+    hadError = False
+    for i in range(len(param_types)):
+      if (param_types[i] != function.param_types[i]):
+        print('>>>', function.param_names[i], 'expected to be', function.param_types[i], 'but found', param_types[i], 'in function', function.name)
+        hadError = True
+
+    if (hadError):
+      return ERROR_STRING
+
+    return function.return_type
+
+  def varFunctionCall(self, node, child_types):
+    var_type = child_types[0]
+    fun_name = node.getChild(2).getText()
+    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type)
+
   def visit(self, tree):
     if isinstance(tree, TerminalNode):
       if (tree.getText() in unoverloading): return tree.getText()
@@ -301,6 +329,7 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
       if (node_type == YalpParser.Var_declarationsContext): return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
+      if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool'):
@@ -362,9 +391,6 @@ class PostOrderVisitor(YalpVisitor):
 
         return TYPES[key]
 
-      if (node_type == YalpParser.Expr_paramsContext):
-        return 'Void'
-
       if (node_type == YalpParser.FunDeclarationContext):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
@@ -386,20 +412,17 @@ class PostOrderVisitor(YalpVisitor):
         return child_types[0]
       
       if (node_type == YalpParser.FunctionCallContext):
-        # variables = tree.getChild(0).getText().split(".")
-        # params =  tree.getChild(2).getText()
-
-        print(tree.getText(), child_count, child_types)
+        isParentMethod = tree.getChild(1).getText() == '@'
+        if isParentMethod:
+          # TODO add other function
+          return self.varFunctionCall(tree, child_types)
 
         if (ERROR_STRING in child_types):
           return ERROR_STRING
         
-
-        # TODO: Make this get the function type
-        return 'Void'
+        return self.varFunctionCall(tree, child_types)
 
       if (node_type == YalpParser.R_classContext):
-        # print(tree.getChild(1).getText(), child_types)
         if (ERROR_STRING in child_types):
           return ERROR_STRING
         
@@ -426,4 +449,4 @@ visitor.checkMain()
 
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
-print(variables_table)
+# print(variables_table)

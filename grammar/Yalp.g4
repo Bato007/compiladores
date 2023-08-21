@@ -77,13 +77,12 @@ type :
   | RESERVED_SELF_TYPE
 ;
 
-expr_params : expr (COMMA expr)*;
 expr :
   // expr [@CLASS_ID].OBJ_ID([expr params])
   expr (OPERATOR_AT CLASS_ID)? OPERATOR_DOT OBJ_ID 
-    LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                             # functionCall
+    LEFT_PARENTESIS (expr (COMMA expr)*)? RIGHT_PARENTESIS                      # functionCall
   // variable([expr params])
-  | OBJ_ID LEFT_PARENTESIS (expr_params)? RIGHT_PARENTESIS                      # absoluteFunctionCall
+  | OBJ_ID LEFT_PARENTESIS (expr (COMMA expr)*)? RIGHT_PARENTESIS               # localFunCall
   // if expr then expr else expr fi
   | IF expr THEN expr ELSE expr FI                                              # ifTense
   // while expr loop expr pool

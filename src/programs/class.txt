@@ -1,6 +1,6 @@
 class Main {
   -- this is another comment
-  main() : String {
+  main() : Object {
     "temp"
   };
 };
@@ -9,10 +9,6 @@ class DB {
   -- this is another comment
   helloString : String <- "Hello";
   byeString : String <- "Bye";
-
-  g(y:String, byeString:String) : Int {
-    y.concat(s, "wuuu")
-  };
 
   flag : Bool <- true;
   thisAnotherFun(y:Int, well:String, pepe:Bool) : Object {
@@ -27,6 +23,14 @@ class DB {
       123 - 32;
       "sdfkj";
     }
+  };
+
+  g(y:String, byeString:String) : Object {
+    thisAnotherFun(21, "sdf", true)
+  };
+
+  gg(y:String, byeString:String) : Object {
+    y.substr(0, 1)
   };
 };
 
