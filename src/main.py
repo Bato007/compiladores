@@ -249,7 +249,7 @@ class PostOrderVisitor(YalpVisitor):
     parent_class = classes_table.get(child_types[-2]).getParent()
     while (True):
       if (function.return_type == parent_class): break
-      if (i == LIMIT or parent_class is None): 
+      if (i >= LIMIT or parent_class is None): 
         print('>>> Return type of', child_types[-2], 'cannot be assigned to', function.return_type, function.name, function.context)
         parent_class = ERROR_STRING
         break
@@ -288,10 +288,12 @@ class PostOrderVisitor(YalpVisitor):
   def varFunctionCall(self, node, child_types):
     var_type = child_types[0]
     fun_name = node.getChild(2).getText()
-    print("fun_name:", type(fun_name), fun_name)
-    print("child_types[4:-1]:", type(child_types[4:-1]), child_types[4:-1])
-    print("var_type:", type(var_type), var_type)
     return self.checkFunctionCall(fun_name, child_types[4:-1], var_type)
+
+  def parentFunctionCall(self, node, child_types):
+    var_type = node.getChild(2).getText()
+    fun_name = node.getChild(4).getText()
+    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type)
 
   def visit(self, tree):
     if isinstance(tree, TerminalNode):
@@ -401,7 +403,7 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FunDeclarationContext):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
-
+        print(child_types, tree.getChild(0).getText())
         return self.getFunctionDeclarationType(child_types)
 
       if (node_type == YalpParser.AssignmentContext):
@@ -421,8 +423,7 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FunctionCallContext):
         isParentMethod = tree.getChild(1).getText() == '@'
         if isParentMethod:
-          # TODO add other function
-          return self.varFunctionCall(tree, child_types)
+          return self.parentFunctionCall(tree, child_types)
 
         if (ERROR_STRING in child_types):
           return ERROR_STRING
@@ -436,14 +437,13 @@ class PostOrderVisitor(YalpVisitor):
         return tree.getChild(1).getText()
       
       if node_type == YalpParser.ObjCreationContext:
-        variable = tree.getChild(0).getText()
-        name = tree.getChild(1)
+        object_type = tree.getChild(1).getText()
 
-        if (variable == "new" and name != None):
-          if (classes_table.contains(name.getText())):
-            return name
-          else:
-            return ERROR_STRING
+        if (classes_table.contains(object_type)):
+          return object_type
+        else:
+          print('Type', object_type, 'doesnt exists')
+          return ERROR_STRING
 
       class_types = list(filter(lambda a: a != 'Void', child_types))
 
