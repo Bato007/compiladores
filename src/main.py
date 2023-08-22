@@ -52,6 +52,7 @@ class TypeCollectorVisitor(YalpVisitor):
     self.class_context = ''
     self.fun_context = ''
     self.check_later = {}
+    self.let_id = 0
 
   # Checks if the program contains main class and the
   def checkMain(self):
@@ -145,6 +146,7 @@ class TypeCollectorVisitor(YalpVisitor):
 
   # Visit a parse tree produced by YalpParser#funDeclaration.
   def visitFunDeclaration(self, ctx:YalpParser.FunDeclarationContext):
+    self.let_id = 0
     fun_name = ctx.getChild(0).getText()
     fun_context = self.class_context
     fun_return_type = ctx.getChild(-4).getText()
@@ -210,6 +212,52 @@ class TypeCollectorVisitor(YalpVisitor):
       print('>> Error in class', class_name, 'cannot override method from parent', parent)
 
     return self.visitChildren(ctx)
+  
+  def visitLetTense(self, ctx:YalpParser.LetTenseContext):
+    self.let_id += 1
+    fun_name = f'let-{self.let_id}'
+    fun_context = f'{self.class_context}-{self.fun_context}'
+    # self.fun_context = fun_name
+
+    added = functions_table.add(
+      fun_name,
+      fun_context,
+      None
+    )
+
+    if (not added):
+      print('>>>> Function', fun_name, 'already defined in', fun_context)
+
+    return self.visitChildren(ctx)
+
+  def visitLetParam(self, ctx:YalpParser.LetParamContext):
+    var_name = ctx.getChild(0).getText()
+
+    if (ctx.getChildCount() == 5):
+      var_type = ctx.getChild(-3).getText()
+      default_value = ctx.getChild(-1).getText()
+    else:
+      var_type = ctx.getChild(-1).getText()
+      default_value = None
+    
+    var_context = f'{self.class_context}-{self.fun_context}-let-{self.let_id}'
+
+    added = self.addVariable(
+      var_name,
+      var_type,
+      var_context,
+      default_value
+    )
+
+    if (not added):
+      print('>>>> Variable:', var_name, 'already defined in function', self.fun_context)
+      variable = variables_table.get(var_name, var_context)
+      variable.setError()
+
+    function = functions_table.get(self.fun_context, self.class_context)
+    function.addParam(var_name, var_type)
+
+    return self.visitChildren(ctx)
 
 class PostOrderVisitor(YalpVisitor):
   def __init__(self, types):
@@ -217,6 +265,7 @@ class PostOrderVisitor(YalpVisitor):
     self.types = types
     self.class_context = ''
     self.fun_context = ''
+    self.let_id = 0
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -226,6 +275,10 @@ class PostOrderVisitor(YalpVisitor):
       
     if (node_type == YalpParser.FunDeclarationContext):
       self.fun_context = node.getChild(0).getText()
+      self.let_id = 0
+
+    if (node_type == YalpParser.LetTenseContext):
+      self.let_id += 1
 
   def getVarDeclarationType(self, node):
     var_name = node.getChild(0).getText()
@@ -304,20 +357,25 @@ class PostOrderVisitor(YalpVisitor):
 
       obj_name = tree.getText()
 
-      # Variable defined in class
-      class_var = variables_table.get(obj_name, self.class_context)
-      if (class_var is not None):
-        return class_var.type
-
-      # Functions defined in class
-      class_fun = functions_table.get(obj_name, self.class_context)
-      if (class_fun is not None): 
-        return class_fun.return_type
+      # Let defined in function
+      let_var = variables_table.get(obj_name, f'{self.class_context}-{self.fun_context}-let-{self.let_id}')
+      if (let_var is not None): 
+        return let_var.type
 
       # Variable defined in function
       fun_var = variables_table.get(obj_name, self.class_context + '-' + self.fun_context)
       if (fun_var is not None): 
         return fun_var.type
+
+      # Functions defined in class
+      class_fun = functions_table.get(obj_name, self.class_context)
+      if (class_fun is not None): 
+        return class_fun.return_type
+      
+      # Variable defined in class
+      class_var = variables_table.get(obj_name, self.class_context)
+      if (class_var is not None):
+        return class_var.type
 
       print('-==============================', tree.getText())
       return 'Void'
@@ -340,6 +398,8 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
 
+      
+        
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool'):
           print('>>>>>>', child_types[1], 'is a non valid operation for while')
@@ -380,6 +440,19 @@ class PostOrderVisitor(YalpVisitor):
 
           i += 1
         return left_type
+      
+      if (node_type == YalpParser.LetParamContext):
+        return child_types[2]
+
+      if (node_type == YalpParser.LetTenseContext):
+        print(">>>> LEEET child_types ", child_types)
+
+        let_name = f'let-{self.let_id}'
+        let_context = f'{self.class_context}-{self.fun_context}'
+        functions_table.get(let_name, let_context).set_return_type(child_types[-1])
+
+        return child_types[-1]
+
 
       if (
         node_type == YalpParser.ArithmeticalContext

@@ -99,6 +99,9 @@ class FunctionObject(object):
 		self.param_types.append(param_type)
 		self.param_names.append(param_name)
 		self.num_params = self.num_params + 1
+
+	def set_return_type(self, return_type):
+		self.return_type = return_type
 	
 	def __str__(self):
 		details = '{\n'
@@ -119,7 +122,7 @@ class FunctionsTable(object):
 		self,
 		fun_name,
 		class_name,
-		return_type,
+		return_type = None,
 	):
 		key = class_name + '-' + fun_name
 		if (key in self.table.keys()):
@@ -133,7 +136,7 @@ class FunctionsTable(object):
 
 		self.table[key] = variable
 		return True
-	
+
 	def contains(self, fun_name, fun_class):
 		key = fun_class + '-' + fun_name
 		if (key in self.table.keys()):

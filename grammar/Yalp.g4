@@ -91,8 +91,7 @@ expr :
   // { (expr;)+ }
   | LEFT_KEY (expr SEMI_COLON)+ RIGHT_KEY                                       # instructions
   // let OBJ_ID : TYPE_ID [ <- expr ] (, OBJ_ID : CLASS_ID [<- expr])* in expr
-  | LET OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? 
-    (COMMA OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)?)* IN expr          # letTense
+  | LET let_formal (COMMA let_formal)* IN expr          # letTense
   // new Date
   | NEW CLASS_ID                                                                # objCreation
   // ~expr  
@@ -130,6 +129,10 @@ expr :
   // true / false
   | Bool                                                                        # boolean
 ;  
+
+let_formal :
+  OBJ_ID COLON CLASS_ID (OPERATOR_ASSIGNMENT expr)? # letParam
+;
 
 formal : 
   OBJ_ID COLON CLASS_ID
