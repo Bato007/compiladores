@@ -1,9 +1,9 @@
-class B inherits IO {};
-
-class A inherits B {};
-
-class Main inherits A {
-   main(): B {
-	out_string("Hello, World.\n")
-   };
+class Main inherits IO {
+    main() : SELF_TYPE {
+	{
+	    out_string((new Object).type_name().substr(4,1)).
+	    out_string((isvoid self).type_name().substr(1,3));
+	    out_string("\n");
+	}
+    };
 };

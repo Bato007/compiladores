@@ -34,7 +34,7 @@ OPERATOR_ASSIGNMENT : '<-' ;
 
 fragment LOWER_CASE : [a-z] ;
 fragment UPPER_CASE : [A-Z] ;
-fragment OtherChars : [!@#$%^&*()`~;:'",.<>?/\\|]+ | ('[' | ']' | '{' | '}')+;
+fragment OtherChars : [!@#$%^&*()`~;:',.<>?/\\|]+ | ('[' | ']' | '{' | '}')+;
 
 Int : [0-9]+ ;
 
