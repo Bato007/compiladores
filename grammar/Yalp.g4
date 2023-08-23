@@ -95,7 +95,7 @@ expr :
   // new Date
   | NEW CLASS_ID                                                                # objCreation
   // ~expr  
-  | OPERATOR_TILDE expr                                                         # arithmetical
+  | OPERATOR_TILDE expr                                                         # binaryArithmetical
   // isvoid expr
   | RESERVED_ISVOID expr                                                        # isVoidExpr
   // expr * expr
@@ -113,7 +113,7 @@ expr :
   // expr = expr
   | expr OPERATOR_EQUALS expr                                                   # logical
   // not expr
-  | RESERVED_NOT expr                                                           # logical
+  | RESERVED_NOT expr                                                           # binaryLogical
   // variable <- expr
   | OBJ_ID OPERATOR_ASSIGNMENT expr                                             # assignment
   // ( expr )

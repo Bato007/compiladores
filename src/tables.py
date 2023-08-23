@@ -98,7 +98,6 @@ class FunctionObject(object):
 	def addParam(self, param_name, param_type):
 		self.param_types.append(param_type)
 		self.param_names.append(param_name)
-		self.num_params = self.num_params + 1
 
 	def set_return_type(self, return_type):
 		self.return_type = return_type
@@ -123,6 +122,7 @@ class FunctionsTable(object):
 		fun_name,
 		class_name,
 		return_type = None,
+    num_params = 0
 	):
 		key = class_name + '-' + fun_name
 		if (key in self.table.keys()):
@@ -132,6 +132,7 @@ class FunctionsTable(object):
 			fun_name,
 			class_name,
 			return_type,
+			num_params
 		)
 
 		self.table[key] = variable

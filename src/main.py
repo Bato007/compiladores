@@ -163,6 +163,8 @@ class TypeCollectorVisitor(YalpVisitor):
     fun_name = ctx.getChild(0).getText()
     fun_context = self.class_context
     fun_return_type = ctx.getChild(-4).getText()
+    fun_param_num = math.ceil((ctx.getChildCount() - 8) / 2)
+
     self.fun_context = fun_name
 
     if (fun_return_type == 'SELF_TYPE'):
@@ -171,7 +173,8 @@ class TypeCollectorVisitor(YalpVisitor):
     added = functions_table.add(
       fun_name,
       fun_context,
-      fun_return_type
+      fun_return_type,
+      fun_param_num
     )
 
     if (not added):
@@ -230,12 +233,13 @@ class TypeCollectorVisitor(YalpVisitor):
     self.let_id += 1
     fun_name = f'let-{self.let_id}'
     fun_context = f'{self.class_context}-{self.fun_context}'
-    # self.fun_context = fun_name
+    fun_param_num = math.ceil((ctx.getChildCount() - 3) / 2)
 
     added = functions_table.add(
       fun_name,
       fun_context,
-      None
+      None,
+      fun_param_num
     )
 
     if (not added):
@@ -428,8 +432,6 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
 
-      
-        
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool'):
           print('>>>>>>', child_types[1], 'is a non valid operation for while')
@@ -506,7 +508,7 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FunDeclarationContext):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
-        print(child_types, tree.getChild(0).getText())
+        # print('FunDeclarationContext', child_types, tree.getChild(0).getText())
         return self.getFunctionDeclarationType(child_types)
 
       if (node_type == YalpParser.AssignmentContext):
