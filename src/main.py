@@ -61,10 +61,23 @@ class TypeCollectorVisitor(YalpVisitor):
       print('>> Error Main class doesnt exists')
 
     main_fun = functions_table.get('main', key)
+    
+    is_object_return = False
+    current_class = main_fun.return_type
+    while True:
+      check_object = classes_table.get(current_class)
+      if (check_object.getParent() == "Object" or current_class == "Object"):
+        is_object_return = True
+        break
+      elif (check_object.getParent() == None):
+        break
+      else:
+        current_class = check_object.getParent()
+
     if (
       main_fun is None
       or main_fun.num_params != 0
-      or main_fun.return_type != 'Object'
+      or not is_object_return
     ):
       print('>> Function main(): object {}; doesnt exists in Main class')
 
@@ -299,9 +312,26 @@ class PostOrderVisitor(YalpVisitor):
     if (child_types[-2] == 'Void'): return 'Void'
 
     i = 0
+    
     parent_class = classes_table.get(child_types[-2]).getParent()
     while (True):
       if (function.return_type == parent_class): break
+      
+      is_inherited_return_type = False
+      current_class = self.class_context
+
+      while True:
+        current_class = classes_table.get(current_class)
+
+        if (current_class.getParent() == child_types[-2]):
+          is_inherited_return_type = True
+          break
+        elif (current_class.getParent() == None):
+          break
+        else:
+          current_class = current_class.getParent()
+      if (is_inherited_return_type): break
+
       if (i >= LIMIT or parent_class is None): 
         print('>>> Return type of', child_types[-2], 'cannot be assigned to', function.return_type, function.name, function.context)
         parent_class = ERROR_STRING
