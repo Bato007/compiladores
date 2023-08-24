@@ -65,7 +65,7 @@ def highlight_syntax(event=None):
         line_numb += 1
 # Create the main themed window
 root = tk.Tk()
-root.title("Script")
+root.title("Cool Debugger")
 
 
 # Create a frame to group the text widget and play button
