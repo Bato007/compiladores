@@ -406,9 +406,11 @@ class PostOrderVisitor(YalpVisitor):
       obj_name = tree.getText()
 
       # Let defined in function
-      let_var = variables_table.get(obj_name, f'{self.class_context}-{self.fun_context}-let-{self.let_id}')
-      if (let_var is not None): 
-        return let_var.type
+      local_id = self.let_id
+      for temp_id in reversed(range(1, local_id + 1)):
+        let_var = variables_table.get(obj_name, f'{self.class_context}-{self.fun_context}-let-{temp_id}')
+        if (let_var is not None): 
+          return let_var.type
 
       # Variable defined in function
       fun_var = variables_table.get(obj_name, self.class_context + '-' + self.fun_context)
@@ -425,7 +427,7 @@ class PostOrderVisitor(YalpVisitor):
       if (class_var is not None):
         return class_var.type
 
-      print('-==============================', tree.getText())
+      print('Unknown', tree.getText())
       return 'Void'
 
     else:
@@ -444,6 +446,7 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
       if (node_type == YalpParser.Var_declarationsContext): return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
+      if (node_type == YalpParser.LetParamContext): return child_types[2]
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
@@ -518,7 +521,8 @@ class PostOrderVisitor(YalpVisitor):
         key = leftOperand + '-' + operatorType + '-' + rightOperand
         if (key not in TYPES):
           if (node_type == YalpParser.ArithmeticalContext):
-            print('>>>> Cannot operate', leftOperand, 'with', rightOperand)
+            print('>>"', tree.getText())
+            print('>>>> Cannot operate', leftOperand, 'with', rightOperand, self.class_context, self.fun_context)
           else:
             print('>>>> Cannot compare', leftOperand, 'with', rightOperand)
 
