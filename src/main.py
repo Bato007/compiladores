@@ -516,19 +516,10 @@ class PostOrderVisitor(YalpVisitor):
 
           i += 1
         return left_type
-      
-      if (node_type == YalpParser.LetParamContext):
-        return child_types[2]
 
       if (node_type == YalpParser.LetTenseContext):
-
         let_name = f'let-{self.let_id}'
         let_context = f'{self.class_context}-{self.fun_context}'
-        # print(">>>> self.class_context ", self.class_context)
-        # print(">>>> self.fun_context ", self.fun_context)
-        # print(">>>> set_return_type ", child_types[-1])
-        # print(">>>> inherited_context ", self.inherited_context)
-        # print(">>>> LEEET child_types ", child_types, let_name, let_context)
         if (self.inherited_context != None):
           functions_table.get(let_name, let_context).set_return_type(self.inherited_context)
         else:
@@ -536,6 +527,20 @@ class PostOrderVisitor(YalpVisitor):
 
         return child_types[-1]
 
+      if (
+        node_type == YalpParser.BinaryArithmeticalContext
+        or node_type == YalpParser.BinaryLogicalContext
+      ):
+        _, rightOperand =  child_types
+        operator = tree.getChild(0)
+        operatorType = self.parser.symbolicNames[operator.symbol.type]
+        key = operatorType + '-' + rightOperand
+
+        if (key not in TYPES):
+          print('>>>> Cannot operate', leftOperand, 'with', operator)
+          return ERROR_STRING
+
+        return TYPES[key]
 
       if (
         node_type == YalpParser.ArithmeticalContext
@@ -548,7 +553,6 @@ class PostOrderVisitor(YalpVisitor):
         key = leftOperand + '-' + operatorType + '-' + rightOperand
         if (key not in TYPES):
           if (node_type == YalpParser.ArithmeticalContext):
-            print('>>"', tree.getText())
             print('>>>> Cannot operate', leftOperand, 'with', rightOperand, self.class_context, self.fun_context)
           else:
             print('>>>> Cannot compare', leftOperand, 'with', rightOperand)
@@ -557,30 +561,50 @@ class PostOrderVisitor(YalpVisitor):
 
         return TYPES[key]
 
-      if (node_type == YalpParser.FunDeclarationContext):
-        if (ERROR_STRING in child_types):
-          return ERROR_STRING
-        # print('FunDeclarationContext', child_types, tree.getChild(0).getText())
-        return self.getFunctionDeclarationType(child_types)
-
       if (node_type == YalpParser.AssignmentContext):
         if (ERROR_STRING in child_types):
           variable = tree.getChild(0)
           print('Cannot assign to', variable.getText())
           return ERROR_STRING
 
-        if (child_types[0] != child_types[2]):
-          # TODO: Chacke 
-          variable = tree.getChild(0)
-          get_tree_line(tree)
-          print('Cannot assign', child_types[0], 'with', child_types[2], 'in', variable)
+        if (child_types[0] == child_types[2]):
+          return child_types[0]
+
+        # Checks parents types
+        i = 0
+        left_type = child_types[0]
+        right_type = classes_table.get(child_types[2]).getParent()
+        while True:
+          if (left_type == right_type): break
+          if (i == LIMIT): 
+            print('>>> Check super class of this assignment', tree.getText())
+            return ERROR_STRING
+
+          right_type = classes_table.get(right_type).getParent()
+          if (right_type is None):
+            get_tree_line(tree)
+            print('Cannot assign', child_types[0], 'with', child_types[2], 'in', variable)
+            return ERROR_STRING
+
+          i += 1
+        return left_type
+
+      if node_type == YalpParser.ObjCreationContext:
+        object_type = tree.getChild(1).getText()
+
+        if (classes_table.contains(object_type)):
+          return object_type
+
+        print('Type', object_type, 'doesnt exists')
+        return ERROR_STRING
+        
+      if (node_type == YalpParser.FunDeclarationContext):
+        if (ERROR_STRING in child_types):
           return ERROR_STRING
+        # print('FunDeclarationContext', child_types, tree.getChild(0).getText())
+        return self.getFunctionDeclarationType(child_types)
 
-        return child_types[0]
-      
       if (node_type == YalpParser.FunctionCallContext):
-
-
         isParentMethod = tree.getChild(1).getText() == '@'
         if isParentMethod:
           return self.parentFunctionCall(tree, child_types)
@@ -595,15 +619,6 @@ class PostOrderVisitor(YalpVisitor):
           return ERROR_STRING
         
         return tree.getChild(1).getText()
-      
-      if node_type == YalpParser.ObjCreationContext:
-        object_type = tree.getChild(1).getText()
-
-        if (classes_table.contains(object_type)):
-          return object_type
-        else:
-          print('Type', object_type, 'doesnt exists')
-          return ERROR_STRING
 
       class_types = list(filter(lambda a: a != 'Void', child_types))
 
