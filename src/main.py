@@ -386,6 +386,7 @@ class PostOrderVisitor(YalpVisitor):
     function = functions_table.get(fun_name, class_context)
 
     if (function is None):
+      print(fun_name, class_context)
       print('>>> Function doesnt exists in class', class_context)
       return ERROR_STRING
 
@@ -509,7 +510,11 @@ class PostOrderVisitor(YalpVisitor):
             left_type = ERROR_STRING
             break
 
-          right_type = classes_table.get(right_type).getParent()
+          if (classes_table.get(right_type) is None):
+            right_type = None
+          else:
+            right_type = classes_table.get(right_type).getParent()
+
           if (right_type is None):
             right_type = child_types[5]
             left_type = classes_table.get(left_type).getParent()
@@ -642,3 +647,6 @@ visitor.checkMain()
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
 # print(variables_table)
+
+# for x in functions_table.table:
+#   print('>>>', x)
