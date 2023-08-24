@@ -366,7 +366,7 @@ class PostOrderVisitor(YalpVisitor):
       print('>>> Function doesnt exists in class', class_context)
       return ERROR_STRING
 
-    if (len(param_types) != len(function.param_types)):
+    if (len(param_types) != function.num_params):
       print('>>>', function.name, 'expecting', len(function.param_types), 'but got', len(param_types), 'params')
       return ERROR_STRING
 
@@ -501,7 +501,7 @@ class PostOrderVisitor(YalpVisitor):
         # print(">>>> self.fun_context ", self.fun_context)
         # print(">>>> set_return_type ", child_types[-1])
         # print(">>>> inherited_context ", self.inherited_context)
-        print(">>>> LEEET child_types ", child_types, let_name, let_context)
+        # print(">>>> LEEET child_types ", child_types, let_name, let_context)
         if (self.inherited_context != None):
           functions_table.get(let_name, let_context).set_return_type(self.inherited_context)
         else:
