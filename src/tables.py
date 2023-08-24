@@ -89,6 +89,7 @@ class FunctionObject(object):
 		num_params = 0,
 	) -> None:
 		self.name = name
+		self.is_inherited = False
 		self.context = context
 		self.num_params = num_params
 		self.return_type = return_type
@@ -101,6 +102,9 @@ class FunctionObject(object):
 
 	def set_return_type(self, return_type):
 		self.return_type = return_type
+
+	def set_is_inherited(self):
+		self.is_inherited = True
 	
 	def __str__(self):
 		details = '{\n'
@@ -110,6 +114,7 @@ class FunctionObject(object):
 		details += f'  num_params: {self.num_params}\n'
 		details += f'  param_types: {self.param_types}\n'
 		details += f'  param_names: {self.param_names}\n'
+		details += f'  is_inherited: {self.is_inherited}\n'
 		details += '}'
 		return details
 
@@ -122,12 +127,18 @@ class FunctionsTable(object):
 		fun_name,
 		class_name,
 		return_type = None,
-    num_params = 0
+    	num_params = 0
 	):
 		key = class_name + '-' + fun_name
 		if (key in self.table.keys()):
-			return False
+			function = self.table[key]
+			
+			if (function.is_inherited and function.return_type == return_type and function.num_params == num_params):
+				pass
+			else:
+				return False
 
+		
 		variable = FunctionObject(
 			fun_name,
 			class_name,
@@ -178,7 +189,9 @@ class FunctionsTable(object):
 					inner_table[inherited_key] = parent_method
 
 		for key in inner_table:
-			self.table[key] = inner_table[key]
+			current_funct = inner_table[key]
+			current_funct.set_is_inherited()
+			self.table[key] = current_funct
 
 		return True
 	

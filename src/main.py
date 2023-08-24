@@ -283,6 +283,7 @@ class PostOrderVisitor(YalpVisitor):
     self.class_context = ''
     self.fun_context = ''
     self.let_id = 0
+    self.inherited_context = ''
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -308,7 +309,10 @@ class PostOrderVisitor(YalpVisitor):
     return variable.type
 
   def getFunctionDeclarationType(self, child_types):
+    # print("     self.fun_context >> ", self.fun_context)
+    # print("     self.class_context >> ", self.class_context)
     function = functions_table.get(self.fun_context, self.class_context)
+    # print("     function >> ", function.name)
 
     if (function.return_type == child_types[-2]):
       return function.return_type
@@ -322,7 +326,11 @@ class PostOrderVisitor(YalpVisitor):
       if (function.return_type == parent_class): break
       
       is_inherited_return_type = False
-      current_class = self.class_context
+
+      if (self.inherited_context != None):
+        current_class = self.inherited_context
+      else:
+        current_class = self.class_context
 
       while True:
         current_class = classes_table.get(current_class)
@@ -353,6 +361,7 @@ class PostOrderVisitor(YalpVisitor):
     class_context = self.class_context if class_name is None else class_name
 
     function = functions_table.get(fun_name, class_context)
+
     if (function is None):
       print('>>> Function doesnt exists in class', class_context)
       return ERROR_STRING
@@ -369,6 +378,11 @@ class PostOrderVisitor(YalpVisitor):
 
     if (hadError):
       return ERROR_STRING
+
+    if (function.is_inherited):
+      self.inherited_context = class_context
+    else:
+      self.inherited_context = None
 
     return function.return_type
 
@@ -477,11 +491,18 @@ class PostOrderVisitor(YalpVisitor):
         return child_types[2]
 
       if (node_type == YalpParser.LetTenseContext):
-        print(">>>> LEEET child_types ", child_types)
 
         let_name = f'let-{self.let_id}'
         let_context = f'{self.class_context}-{self.fun_context}'
-        functions_table.get(let_name, let_context).set_return_type(child_types[-1])
+        # print(">>>> self.class_context ", self.class_context)
+        # print(">>>> self.fun_context ", self.fun_context)
+        # print(">>>> set_return_type ", child_types[-1])
+        # print(">>>> inherited_context ", self.inherited_context)
+        print(">>>> LEEET child_types ", child_types, let_name, let_context)
+        if (self.inherited_context != None):
+          functions_table.get(let_name, let_context).set_return_type(self.inherited_context)
+        else:
+          functions_table.get(let_name, let_context).set_return_type(child_types[-1])
 
         return child_types[-1]
 
@@ -520,7 +541,7 @@ class PostOrderVisitor(YalpVisitor):
         if (child_types[0] != child_types[2]):
           # TODO: Chacke 
           variable = tree.getChild(0)
-          print('Cannot assign', child_types[0], 'with', child_types[2])
+          print('Cannot assign', child_types[0], 'with', child_types[2], 'in', variable)
           return ERROR_STRING
 
         return child_types[0]
