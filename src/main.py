@@ -44,6 +44,29 @@ classes_table = ClassesTable()
 variables_table = VariablesTable()
 functions_table = FunctionsTable()
 
+def get_tree_line(tree):
+  # Get the token interval associated with the tree node
+  start_token_index = tree.getSourceInterval()[0]
+  end_token_index = tree.getSourceInterval()[1]
+
+  # Access the corresponding tokens and their line/column information
+  start_token = token_stream.get(start_token_index)
+  end_token = token_stream.get(end_token_index)
+
+  start_line, start_column = start_token.line, start_token.column
+  end_line, end_column = end_token.line, end_token.column
+
+  print(f"Start Line: {start_line}, Start Column: {start_column}")
+  print(f"End Line: {end_line}, End Column: {end_column}")
+
+def get_ctx_line(ctx):
+    # Get line and column information from ctx
+    line = ctx.start.line
+    column = ctx.start.column
+
+    print(f"Line: {line}, Column: {column}")
+
+
 class TypeCollectorVisitor(YalpVisitor):
   def __init__(self):
     super().__init__()
@@ -427,6 +450,10 @@ class PostOrderVisitor(YalpVisitor):
       if (class_var is not None):
         return class_var.type
 
+      existing_function = functions_table.function_exists_with_name(obj_name)
+      if (existing_function):
+        return 'Void'
+
       print('Unknown', tree.getText())
       return 'Void'
 
@@ -545,12 +572,15 @@ class PostOrderVisitor(YalpVisitor):
         if (child_types[0] != child_types[2]):
           # TODO: Chacke 
           variable = tree.getChild(0)
+          get_tree_line(tree)
           print('Cannot assign', child_types[0], 'with', child_types[2], 'in', variable)
           return ERROR_STRING
 
         return child_types[0]
       
       if (node_type == YalpParser.FunctionCallContext):
+
+
         isParentMethod = tree.getChild(1).getText() == '@'
         if isParentMethod:
           return self.parentFunctionCall(tree, child_types)

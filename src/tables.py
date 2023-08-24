@@ -165,6 +165,11 @@ class FunctionsTable(object):
 			return None
 		return self.table.get(key)
 
+	def function_exists_with_name(self, searched_name):
+		for key in self.table.keys():
+			possible_name = key.split("-")[1]
+			if (possible_name == searched_name):
+				return True
 	
 	def inheritFunctions(
 		self,
