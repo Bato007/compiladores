@@ -478,7 +478,7 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
-        if (child_types[1] != 'Bool'):
+        if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for while')
           return ERROR_STRING
 
@@ -488,9 +488,7 @@ class PostOrderVisitor(YalpVisitor):
         return 'Object'
 
       if (node_type == YalpParser.IfTenseContext):
-
-        # TODO: implicit cast
-        if (child_types[1] != 'Bool'):
+        if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for if')
           return ERROR_STRING
 
@@ -573,6 +571,19 @@ class PostOrderVisitor(YalpVisitor):
           return ERROR_STRING
 
         if (child_types[0] == child_types[2]):
+          return child_types[0]
+        
+        if (
+          (
+            child_types[0] == 'Bool'
+            or child_types[0] == 'Int'
+          ) 
+            and 
+          (
+            child_types[2] == 'Bool'
+            or child_types[2] == 'Int'
+          )
+        ):
           return child_types[0]
 
         # Checks parents types
