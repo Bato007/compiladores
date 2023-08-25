@@ -55,13 +55,20 @@ def highlight_syntax(event=None):
 
     line_numb = 1
     for line in lines:
+        try:
+            comment_index = line.index("--")
+        except:
+            comment_index = -1
+
         for pattern, tag in patterns:
             for match in re.finditer(pattern, line):
                 start = match.start(0)
                 end = match.end(0)
+
+                if (comment_index == -1 or (comment_index != -1 and start < comment_index)):
                 
-                # Find the line number for the start of the match
-                text_widget.tag_add(tag, f"{line_numb}.{start}", f"{line_numb}.{end}")
+                    # Find the line number for the start of the match
+                    text_widget.tag_add(tag, f"{line_numb}.{start}", f"{line_numb}.{end}")
         line_numb += 1
 # Create the main themed window
 root = tk.Tk()

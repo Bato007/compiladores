@@ -28,4 +28,4 @@ if exist './src/grammar/*.interp' (
     echo No .interp files found.
 )
 
-antlr -Dlanguage=Python3 -visitor -o ./src ./grammar/*.g4
+Java -jar D:/Javalib/antlr-4.13.0-complete.jar  -Dlanguage=Python3 -visitor -o ./src ./grammar/*.g4

@@ -8,7 +8,7 @@ from grammar.YalpVisitor import YalpVisitor
 
 from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject, FunctionsTable
 
-entry_file = 'project1.txt'
+entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
 
 # print(input_string)
