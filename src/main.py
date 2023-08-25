@@ -8,7 +8,7 @@ from grammar.YalpVisitor import YalpVisitor
 
 from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject, FunctionsTable
 
-entry_file = 'class.txt'
+entry_file = 'project1.txt'
 input_string = resolveEntryPoint(entry_file)
 
 # print(input_string)
@@ -24,6 +24,10 @@ TYPES = {
   'Int-OPERATOR_EQUALS-Int': 'Bool',
   'Int-OPERATOR_LESS_EQUAL-Int': 'Bool',
   # Booleans
+  'Bool-OPERATOR_PLUS-Bool': 'Int',
+  'Bool-OPERATOR_MINUS-Bool': 'Int',
+  'Bool-OPERATOR_DIVIDE-Bool': 'Int',
+  'Bool-OPERATOR_MULTIPLY-Bool': 'Int',
   'OPERATOR_TILDE-Bool': 'Bool',
   'RESERVED_NOT-Bool': 'Bool',
   'Bool-OPERATOR_LESS-Bool': 'Bool',
@@ -529,6 +533,19 @@ class PostOrderVisitor(YalpVisitor):
           functions_table.get(let_name, let_context).set_return_type(child_types[-1])
 
         return child_types[-1]
+      
+      # # Get the token interval associated with the tree node
+      # start_token_index = tree.getSourceInterval()[0]
+      # end_token_index = tree.getSourceInterval()[1]
+
+      # # Access the corresponding tokens and their line/column information
+      # start_token = token_stream.get(start_token_index)
+      # end_token = token_stream.get(end_token_index)
+
+      # start_line, start_column = start_token.line, start_token.column
+      # end_line, end_column = end_token.line, end_token.column
+
+      # print(f"Line error: {start_line}:{start_column}")
 
       if (
         node_type == YalpParser.BinaryArithmeticalContext

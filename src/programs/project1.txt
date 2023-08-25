@@ -1,0 +1,46 @@
+class A {
+  sum() : Int {
+    1 + 1
+  };
+};
+
+class Main inherits A {
+
+  a : Int <- 50;
+
+  otherMethod(a : String) : String {
+    a
+  };
+
+  ifMethod() : Object {
+    if true then 
+      "halt"
+    else 
+      1
+    fi   
+  };
+
+  loopMethod() : Object {
+    while 
+      a = 50 
+    loop 
+      a <- a + 1
+    pool 
+  };
+
+  casting(a : Bool, b : Int) : Int {
+    {
+      b <- (Int)(true);
+      a <- 1 + 1;
+      b <- false + true;
+    }
+  };
+
+  castImplicit() : Int {
+    casting(true, 1)
+  };
+
+   main(): Object {
+	  sum()
+   };
+};
