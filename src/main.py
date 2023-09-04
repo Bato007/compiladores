@@ -1,6 +1,7 @@
 import math
 from antlr4 import *
 from reader import resolveEntryPoint
+from constants import *
 
 from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
@@ -10,39 +11,6 @@ from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject,
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
-
-# print(input_string)
-
-TYPES = {
-  'Int-OPERATOR_PLUS-Int': 'Int',
-  'Int-OPERATOR_MINUS-Int': 'Int',
-  'Int-OPERATOR_DIVIDE-Int': 'Int',
-  'Int-OPERATOR_MULTIPLY-Int': 'Int',
-  'OPERATOR_TILDE-Int': 'Int',
-  # Integers
-  'Int-OPERATOR_LESS-Int': 'Bool',
-  'Int-OPERATOR_EQUALS-Int': 'Bool',
-  'Int-OPERATOR_LESS_EQUAL-Int': 'Bool',
-  # Booleans
-  'Bool-OPERATOR_PLUS-Bool': 'Int',
-  'Bool-OPERATOR_MINUS-Bool': 'Int',
-  'Bool-OPERATOR_DIVIDE-Bool': 'Int',
-  'Bool-OPERATOR_MULTIPLY-Bool': 'Int',
-  'OPERATOR_TILDE-Bool': 'Bool',
-  'RESERVED_NOT-Bool': 'Bool',
-  'Bool-OPERATOR_LESS-Bool': 'Bool',
-  'Bool-OPERATOR_LESS_EQUAL-Bool': 'Bool',
-  'Bool-OPERATOR_EQUALS-Bool': 'Bool',
-  # String
-  'String-OPERATOR_LESS-String': 'Bool',
-  'String-OPERATOR_EQUALS-String': 'Bool',
-  'String-OPERATOR_LESS_EQUAL-String': 'Bool',
-}
-
-ERROR_STRING = 'ERROR'
-LIMIT = 50
-uninherable = ['Bool', 'Int', 'String']
-unoverloading = ['Object', 'IO', 'Bool', 'Int', 'String']
 
 classes_table = ClassesTable()
 variables_table = VariablesTable()
@@ -70,7 +38,6 @@ def get_ctx_line(ctx):
 
     print(f"Line: {line}, Column: {column}")
 
-
 class TypeCollectorVisitor(YalpVisitor):
   def __init__(self):
     super().__init__()
@@ -80,6 +47,25 @@ class TypeCollectorVisitor(YalpVisitor):
     self.fun_context = ''
     self.check_later = {}
     self.let_id = 0
+
+  def compileClass(self):
+    if (self.class_context == ''): return
+
+    current_class = classes_table.get(self.class_context)
+
+    for function_name in current_class.functions:
+      function = functions_table.get(function_name, self.class_context)
+      if (function.let_num != 0):
+        for id in range(function.let_num):
+          let_name = f'let-{id + 1}'
+          let_context = f'{self.class_context}-{function.name}'
+
+          let = functions_table.get(let_name, let_context)
+          let.updateOffset(function.size)
+          function.addToSize(let.size)
+
+      function.updateOffset(current_class.getSize())
+      current_class.updateOffset(function.size)
 
   # Checks if the program contains main class and the
   def checkMain(self):
@@ -160,6 +146,25 @@ class TypeCollectorVisitor(YalpVisitor):
       print('>>>> Variable:', var_name, 'already defined in class', self.class_context)
       variable = variables_table.get(var_name, self.class_context)
       variable.setError()
+      return self.visitChildren(ctx)
+
+    var = variables_table.get(var_name, self.class_context)
+
+    current_class = classes_table.get(self.class_context)
+
+    size = 0
+    if (var_type == self.class_context):
+      size = POINTER_SIZE
+
+    try:
+      size = classes_table.get(self.class_context).getSize()
+    except: pass
+    
+    var.setSize(size)
+    var.setOffset(current_class.getOffset())
+
+    current_class.updateOffset(var.getSize())
+    current_class.addVariable(var_name)
     return self.visitChildren(ctx)
 
   # Visit a parse tree produced by YalpParser#formal.
@@ -178,9 +183,24 @@ class TypeCollectorVisitor(YalpVisitor):
       print('>>>> Variable:', var_name, 'already defined in function', self.fun_context)
       variable = variables_table.get(var_name, var_context)
       variable.setError()
+      return self.visitChildren(ctx)
+
+    var = variables_table.get(var_name, var_context)
 
     function = functions_table.get(self.fun_context, self.class_context)
-    function.addParam(var_name, var_type)
+
+    size = 0
+    if (var_type == self.class_context):
+      size = POINTER_SIZE
+
+    try:
+      size = classes_table.get(self.class_context).getSize()
+    except: pass
+    
+    var.setSize(size)
+    var.setOffset(function.getSize())
+
+    function.addParam(var_name, var_type, var.getSize())
 
     return self.visitChildren(ctx)
 
@@ -193,6 +213,7 @@ class TypeCollectorVisitor(YalpVisitor):
     fun_param_num = math.ceil((ctx.getChildCount() - 8) / 2)
 
     self.fun_context = fun_name
+    current_class = classes_table.get(self.class_context)
 
     if (fun_return_type == 'SELF_TYPE'):
       fun_return_type = fun_context
@@ -207,10 +228,78 @@ class TypeCollectorVisitor(YalpVisitor):
     if (not added):
       print('>>>> Function', fun_name, 'already defined in', fun_context)
 
+    current_class.addFunction(fun_name)
+    return self.visitChildren(ctx)
+
+  def visitLetTense(self, ctx:YalpParser.LetTenseContext):
+    self.let_id += 1
+    fun_name = f'let-{self.let_id}'
+    fun_context = f'{self.class_context}-{self.fun_context}'
+    fun_param_num = math.ceil((ctx.getChildCount() - 3) / 2)
+
+    added = functions_table.add(
+      fun_name,
+      fun_context,
+      None,
+      fun_param_num
+    )
+
+    if (not added):
+      print('>>>> Function', fun_name, 'already defined in', fun_context)
+      return self.visitChildren(ctx)
+    function = functions_table.get(self.fun_context, self.class_context)
+    function.addLet()
+
+    return self.visitChildren(ctx)
+
+  def visitLetParam(self, ctx:YalpParser.LetParamContext):
+    fun_name = f'let-{self.let_id}'
+    fun_context = f'{self.class_context}-{self.fun_context}'
+
+    var_name = ctx.getChild(0).getText()
+
+    if (ctx.getChildCount() == 5):
+      var_type = ctx.getChild(-3).getText()
+      default_value = ctx.getChild(-1).getText()
+    else:
+      var_type = ctx.getChild(-1).getText()
+      default_value = None
+    
+    var_context = f'{self.class_context}-{self.fun_context}-let-{self.let_id}'
+
+    added = self.addVariable(
+      var_name,
+      var_type,
+      var_context,
+      default_value
+    )
+
+    if (not added):
+      print('>>>> Variable:', var_name, 'already defined in function', self.fun_context)
+      variable = variables_table.get(var_name, var_context)
+      variable.setError()
+
+    function = functions_table.get(fun_name, fun_context)
+    var = variables_table.get(var_name, var_context)
+
+    size = 0  
+    if (var_type == self.class_context):
+      size = POINTER_SIZE
+
+    try:
+      size = classes_table.get(self.class_context).getSize()
+    except: pass
+    
+    var.setSize(size)
+    var.setOffset(function.getSize())
+
+    function.addParam(var_name, var_type, var.getSize())
+
     return self.visitChildren(ctx)
 
   # Visit a parse tree produced by YalpParser#r_class.
   def visitR_class(self, ctx:YalpParser.R_classContext):
+    self.compileClass()
     class_name = ctx.getChild(1).getText()
     is_inherable = ctx.getChild(2).getText()
     parent = None
@@ -255,53 +344,11 @@ class TypeCollectorVisitor(YalpVisitor):
       print('>> Error in class', class_name, 'cannot override method from parent', parent)
 
     return self.visitChildren(ctx)
-  
-  def visitLetTense(self, ctx:YalpParser.LetTenseContext):
-    self.let_id += 1
-    fun_name = f'let-{self.let_id}'
-    fun_context = f'{self.class_context}-{self.fun_context}'
-    fun_param_num = math.ceil((ctx.getChildCount() - 3) / 2)
 
-    added = functions_table.add(
-      fun_name,
-      fun_context,
-      None,
-      fun_param_num
-    )
-
-    if (not added):
-      print('>>>> Function', fun_name, 'already defined in', fun_context)
-
-    return self.visitChildren(ctx)
-
-  def visitLetParam(self, ctx:YalpParser.LetParamContext):
-    var_name = ctx.getChild(0).getText()
-
-    if (ctx.getChildCount() == 5):
-      var_type = ctx.getChild(-3).getText()
-      default_value = ctx.getChild(-1).getText()
-    else:
-      var_type = ctx.getChild(-1).getText()
-      default_value = None
-    
-    var_context = f'{self.class_context}-{self.fun_context}-let-{self.let_id}'
-
-    added = self.addVariable(
-      var_name,
-      var_type,
-      var_context,
-      default_value
-    )
-
-    if (not added):
-      print('>>>> Variable:', var_name, 'already defined in function', self.fun_context)
-      variable = variables_table.get(var_name, var_context)
-      variable.setError()
-
-    function = functions_table.get(self.fun_context, self.class_context)
-    function.addParam(var_name, var_type)
-
-    return self.visitChildren(ctx)
+  def compile(self, tree):
+    self.visit(tree)
+    self.checkPending()
+    self.compileClass()
 
 class PostOrderVisitor(YalpVisitor):
   def __init__(self, types):
@@ -336,11 +383,7 @@ class PostOrderVisitor(YalpVisitor):
     return variable.type
 
   def getFunctionDeclarationType(self, child_types):
-    # print("     self.fun_context >> ", self.fun_context)
-    # print("     self.class_context >> ", self.class_context)
     function = functions_table.get(self.fun_context, self.class_context)
-    # print("     function >> ", function.name)
-
     if (function.return_type == child_types[-2]):
       return function.return_type
 
@@ -533,19 +576,6 @@ class PostOrderVisitor(YalpVisitor):
           functions_table.get(let_name, let_context).set_return_type(child_types[-1])
 
         return child_types[-1]
-      
-      # # Get the token interval associated with the tree node
-      # start_token_index = tree.getSourceInterval()[0]
-      # end_token_index = tree.getSourceInterval()[1]
-
-      # # Access the corresponding tokens and their line/column information
-      # start_token = token_stream.get(start_token_index)
-      # end_token = token_stream.get(end_token_index)
-
-      # start_line, start_column = start_token.line, start_token.column
-      # end_line, end_column = end_token.line, end_token.column
-
-      # print(f"Line error: {start_line}:{start_column}")
 
       if (
         node_type == YalpParser.BinaryArithmeticalContext
@@ -634,7 +664,6 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FunDeclarationContext):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
-        # print('FunDeclarationContext', child_types, tree.getChild(0).getText())
         return self.getFunctionDeclarationType(child_types)
 
       if (node_type == YalpParser.FunctionCallContext):
@@ -668,13 +697,11 @@ parser = YalpParser(token_stream)
 parse_tree = parser.r()
 
 visitor = TypeCollectorVisitor()
-visitor.visit(parse_tree)
-visitor.checkPending()
-visitor.checkMain()
+visitor.compile(parse_tree)
 
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
-# print(variables_table)
+# print(classes_table)
 
-# for x in functions_table.table:
-#   print('>>>', x)
+for x in functions_table.table:
+  print('>>>', functions_table.table[x])
