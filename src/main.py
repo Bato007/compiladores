@@ -157,7 +157,7 @@ class TypeCollectorVisitor(YalpVisitor):
       size = POINTER_SIZE
 
     try:
-      size = classes_table.get(self.class_context).getSize()
+      size = classes_table.get(var_type).getSize()
     except: pass
     
     var.setSize(size)
@@ -703,5 +703,5 @@ visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
 # print(classes_table)
 
-for x in functions_table.table:
-  print('>>>', functions_table.table[x])
+# for x in functions_table.table:
+#   print('>>>', functions_table.table[x])
