@@ -194,7 +194,7 @@ class TypeCollectorVisitor(YalpVisitor):
       size = POINTER_SIZE
 
     try:
-      size = classes_table.get(self.class_context).getSize()
+      size = classes_table.get(var_type).getSize()
     except: pass
     
     var.setSize(size)
@@ -287,7 +287,7 @@ class TypeCollectorVisitor(YalpVisitor):
       size = POINTER_SIZE
 
     try:
-      size = classes_table.get(self.class_context).getSize()
+      size = classes_table.get(var_type).getSize()
     except: pass
     
     var.setSize(size)
