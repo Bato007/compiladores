@@ -359,10 +359,7 @@ class PostOrderVisitor(YalpVisitor):
     self.fun_context = ''
     self.let_id = 0
     self.inherited_context = ''
-    self.currentTemp = {
-      "id": 0,
-      "content": None
-    }
+    self.lastTemp = None
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -525,16 +522,19 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.ParentesisContext): return child_types[1]
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
       if (node_type == YalpParser.Var_declarationsContext): 
-        if (self.currentTemp["id"] == 0):
-          print(f'                {tree.getChild(0)} = {tree.getChild(-1).getText()}')
-        else:
-          context = f'{self.class_context}-{self.fun_context}'
-          print(f'                {tree.getChild(0)} = t{self.currentTemp["id"]}')
+        try:
+          # print("entra en Var_declarationsContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
+          pass
+        except:
+          pass
         
-        self.currentTemp = {
-          "id": 0,
-          "content": None
-        }
+        if (self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
+          print(f'                {tree.getChild(0)} = t{self.lastTemp._id}')
+        else:
+          print(f'                {tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          
+        
+        self.lastTemp = None
         print("-"*30)
         return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
@@ -613,6 +613,12 @@ class PostOrderVisitor(YalpVisitor):
         node_type == YalpParser.ArithmeticalContext
         or node_type == YalpParser.LogicalContext
       ):
+        try:
+          # print("entra en ArithmeticalContext", self.lastTemp.originalRule, tree.getText())
+          pass
+        except:
+          pass
+
         leftOperand, _, rightOperand =  child_types
         if isinstance(rightOperand, list):
           rightOperand, temp = rightOperand
@@ -637,27 +643,40 @@ class PostOrderVisitor(YalpVisitor):
 
 
         # Saving temporary var
-        current_id = self.currentTemp["id"] + 1
-        past_temporal = self.currentTemp
-
+        if (self.lastTemp == None):
+          current_id = 1
+        else:
+          current_id = self.lastTemp._id + 1
+ 
         added_temporal = temporals_table.add(current_id, context, tree.getText())
 
-        added_temporal.setRule(
-          rule=tree.getText(),
-          content=past_temporal["content"],
-          _id=past_temporal["id"]
-        )
+        if (self.lastTemp != None):
+          added_temporal.setRule(
+            rule=tree.getText(),
+            content=self.lastTemp.originalRule,
+            _id=self.lastTemp._id
+          )
         added_temporal.three_way_print()
-          
-        self.currentTemp = {
-          "id": current_id,
-          "content": tree.getText()
-        }
+        
+        self.lastTemp = added_temporal
 
         return TYPES[key]
 
       if (node_type == YalpParser.AssignmentContext):
-        print("AssignmentContext", tree.getText())
+        try:
+          # print("entra en AssignmentContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
+          pass
+        except:
+          pass
+        if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
+          print(f'                {tree.getChild(0)} = t{self.lastTemp._id}')
+        else:
+          print(f'                {tree.getChild(0)} = {tree.getChild(-1).getText()}')
+        
+        self.lastTemp = None
+        print("-"*30)
+
+
         if (ERROR_STRING in child_types):
           variable = tree.getChild(0)
           print('Cannot assign to', variable.getText())
