@@ -361,7 +361,7 @@ class PostOrderVisitor(YalpVisitor):
     self.inherited_context = ''
     self.currentTemp = {
       "id": 0,
-      "content": ""
+      "content": None
     }
   
   # This function will update the context of the current visited branch
@@ -533,7 +533,7 @@ class PostOrderVisitor(YalpVisitor):
         
         self.currentTemp = {
           "id": 0,
-          "content": ""
+          "content": None
         }
         print("-"*30)
         return self.getVarDeclarationType(tree)
@@ -636,27 +636,23 @@ class PostOrderVisitor(YalpVisitor):
         context = f'{self.class_context}-{self.fun_context}'
 
 
-        temp = temporals_table.get(context, self.currentTemp["id"])
-        # Replacing with three way code
-        temporals_table.get_intermediary_code(
-          temp,
-          tree.getText(),
-          self.currentTemp["content"]
-        )
         # Saving temporary var
         current_id = self.currentTemp["id"] + 1
-        temporals_table.add(current_id, context, tree.getText())
+        past_temporal = self.currentTemp
+
+        added_temporal = temporals_table.add(current_id, context, tree.getText())
+
+        added_temporal.setRule(
+          rule=tree.getText(),
+          content=past_temporal["content"],
+          _id=past_temporal["id"]
+        )
+        added_temporal.three_way_print()
+          
         self.currentTemp = {
           "id": current_id,
           "content": tree.getText()
         }
-      
-        # Getting correct line
-        if (temp == None):
-          temp = temporals_table.get(context, self.currentTemp["id"])
-
-        temp.three_way_print()
-          
 
         return TYPES[key]
 

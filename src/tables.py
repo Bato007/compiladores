@@ -27,13 +27,14 @@ class TemporalObject(object):
 		except:
 			self.size = size
 
-	def setRule(self, rule, temp_content):
-		name = f't{self._id}'
-		intermediaryRule = rule.replace(temp_content, name)
-		# print("			rule", rule)
-		# print("			originalRule", self.originalRule)
-		# print("			intermediaryRule", intermediaryRule)
-		self.intermediaryRule = intermediaryRule
+	def setRule(self, rule, content, _id):
+		name = f't{_id}'
+		if (content != None):
+			intermediaryRule = rule.replace(content, name)
+			# print("			rule", rule)
+			# print("			originalRule", self.originalRule)
+			# print("			intermediaryRule", intermediaryRule)
+			self.intermediaryRule = intermediaryRule
 
 		return self.intermediaryRule
 	
@@ -91,18 +92,6 @@ class TemporalsTable(object):
 		if not self.contains(temporal_context, _id):
 			return None
 		return self.table.get(key)
-	
-	def get_intermediary_code(
-		self,
-		temp: TemporalObject,
-		original_rule,
-		temp_content
-	):
-		if (temp != None):
-			temp.setRule(
-				original_rule,
-				temp_content
-			)
 
 	def __str__(self):
 		details = '{\n'
