@@ -6,6 +6,113 @@ BASE_SIZES = {
   'String': 16,
 }
 
+class TemporalObject(object):
+	def __init__(self, _id, context, originalRule):
+		self._id = _id
+		self.context = context
+		self.size = 0
+		self.offset = 0
+		self.originalRule = originalRule
+		self.intermediaryRule = originalRule
+
+	def setError(self):
+		self.type = 'ERROR'
+
+	def setOffset(self, offset = 0):
+		self.offset = offset
+
+	def setSize(self, size = 0):
+		try:
+			self.size = BASE_SIZES[self.type]
+		except:
+			self.size = size
+
+	def setRule(self, rule, temp_content):
+		name = f't{self._id}'
+		intermediaryRule = rule.replace(temp_content, name)
+		# print("			rule", rule)
+		# print("			originalRule", self.originalRule)
+		# print("			intermediaryRule", intermediaryRule)
+		self.intermediaryRule = intermediaryRule
+
+		return self.intermediaryRule
+	
+	def getSize(self):
+		return self.size
+	
+	def three_way_print(self):
+		print(f'		t{self._id} = {self.intermediaryRule}')
+
+	def __str__(self):
+		details = '{\n'
+		details += f'  id: {self._id}\n'
+		details += f'  context: {self.context}\n'
+		details += f'  size: {self.size}\n'
+		details += f'  offset: {self.offset}\n'
+		details += f'  intermediaryRule: {self.intermediaryRule}\n'
+		details += '}'
+		return details
+
+class TemporalsTable(object):
+	def __init__(self) -> None:
+		self.table = {}
+	
+	def add(
+		self,
+		_id,
+		context,
+		originalRule,
+	):
+		key = f'{context}-t{_id}'
+		if key in self.table.keys():
+			return False
+
+		temporal = TemporalObject(
+			_id,
+			context,
+			originalRule
+		)
+
+		self.table[key] = temporal
+		return temporal
+
+	def contains(self, temporal_context, _id):
+		key = f'{temporal_context}-t{_id}'
+		if key in self.table.keys():
+			return True
+		return False
+	
+	def get(
+		self,
+		temporal_context,
+		_id
+	):
+		key = f'{temporal_context}-t{_id}'
+		if not self.contains(temporal_context, _id):
+			return None
+		return self.table.get(key)
+	
+	def get_intermediary_code(
+		self,
+		temp: TemporalObject,
+		original_rule,
+		temp_content
+	):
+		if (temp != None):
+			temp.setRule(
+				original_rule,
+				temp_content
+			)
+
+	def __str__(self):
+		details = '{\n'
+		for key in self.table:
+			variable = self.table[key]
+			details += f'  {key} : ' + '{\n'
+			details += f'    name: t-{variable._id}\n'
+			details += f'    context: {variable.context}\n'
+		details += '}'
+		return details
 class VariableObject(object):
 	def __init__(self, name, type, context, init_value=None):
 		self.name = name

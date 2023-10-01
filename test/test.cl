@@ -1,6 +1,6 @@
 class Main inherits IO { 
    a: Int <- 0; 
-   b: Int <- 1 - 2 + a * 3; 
+   b: Int <- 2 + a * 3; 
    c: Bool <- true; 
   
    aa(): Object { 

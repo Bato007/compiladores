@@ -7,7 +7,7 @@ from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
 from grammar.YalpVisitor import YalpVisitor
 
-from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject, FunctionsTable
+from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject, FunctionsTable, TemporalsTable
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
@@ -15,6 +15,7 @@ input_string = resolveEntryPoint(entry_file)
 classes_table = ClassesTable()
 variables_table = VariablesTable()
 functions_table = FunctionsTable()
+temporals_table = TemporalsTable()
 
 def get_tree_line(tree):
   # Get the token interval associated with the tree node
@@ -358,6 +359,10 @@ class PostOrderVisitor(YalpVisitor):
     self.fun_context = ''
     self.let_id = 0
     self.inherited_context = ''
+    self.currentTemp = {
+      "id": 0,
+      "content": ""
+    }
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -519,7 +524,19 @@ class PostOrderVisitor(YalpVisitor):
       if child_count == 1: return child_types[0]
       if (node_type == YalpParser.ParentesisContext): return child_types[1]
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
-      if (node_type == YalpParser.Var_declarationsContext): return self.getVarDeclarationType(tree)
+      if (node_type == YalpParser.Var_declarationsContext): 
+        if (self.currentTemp["id"] == 0):
+          print(f'                {tree.getChild(0)} = {tree.getChild(-1).getText()}')
+        else:
+          context = f'{self.class_context}-{self.fun_context}'
+          print(f'                {tree.getChild(0)} = t{self.currentTemp["id"]}')
+        
+        self.currentTemp = {
+          "id": 0,
+          "content": ""
+        }
+        print("-"*30)
+        return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LetParamContext): return child_types[2]
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
@@ -597,10 +614,14 @@ class PostOrderVisitor(YalpVisitor):
         or node_type == YalpParser.LogicalContext
       ):
         leftOperand, _, rightOperand =  child_types
+        if isinstance(rightOperand, list):
+          rightOperand, temp = rightOperand
+
         operator = tree.getChild(1)
         operatorType = self.parser.symbolicNames[operator.symbol.type]
 
         key = leftOperand + '-' + operatorType + '-' + rightOperand
+        
         if (key not in TYPES):
           if (node_type == YalpParser.ArithmeticalContext):
             print('>>>> Cannot operate', leftOperand, 'with', rightOperand, self.class_context, self.fun_context)
@@ -609,9 +630,38 @@ class PostOrderVisitor(YalpVisitor):
 
           return ERROR_STRING
 
+
+        # print("key", key)
+        # print("tree", tree.getText())
+        context = f'{self.class_context}-{self.fun_context}'
+
+
+        temp = temporals_table.get(context, self.currentTemp["id"])
+        # Replacing with three way code
+        temporals_table.get_intermediary_code(
+          temp,
+          tree.getText(),
+          self.currentTemp["content"]
+        )
+        # Saving temporary var
+        current_id = self.currentTemp["id"] + 1
+        temporals_table.add(current_id, context, tree.getText())
+        self.currentTemp = {
+          "id": current_id,
+          "content": tree.getText()
+        }
+      
+        # Getting correct line
+        if (temp == None):
+          temp = temporals_table.get(context, self.currentTemp["id"])
+
+        temp.three_way_print()
+          
+
         return TYPES[key]
 
       if (node_type == YalpParser.AssignmentContext):
+        print("AssignmentContext", tree.getText())
         if (ERROR_STRING in child_types):
           variable = tree.getChild(0)
           print('Cannot assign to', variable.getText())
