@@ -6,6 +6,34 @@ BASE_SIZES = {
   'String': 16,
 }
 
+class LoopObject(object):
+	def __init__(self, _id, context, if_condition):
+		self._id = _id
+		self.context = context
+		self.if_condition = if_condition
+		self.goto = None
+
+	def start(self, is_if=False):
+		if (is_if):
+			print(f'	if t{self.if_condition} goto L{self._id}')
+			print(f'	goto L{self._id + 1}')
+
+		print(f'	L{self._id}')
+
+	def end(self):
+		print(f'	END_L{self._id}')
+
+	def setGoto(self, goto):
+		self.goto = goto
+
+	def __str__(self):
+		if (self.goto != None):
+			details += f'	if t{self.if_condition} goto L{self.goto}'
+		else: # while
+			details = f'	END_L{self._id}\n'
+			details += f'	if t{self.if_condition} goto L{self._id}'
+		return details
+	
 class TemporalObject(object):
 	def __init__(self, _id, context, originalRule):
 		self._id = _id
@@ -42,7 +70,7 @@ class TemporalObject(object):
 		return self.size
 	
 	def three_way_print(self):
-		print(f'		t{self._id} = {self.intermediaryRule}')
+		print(f'	t{self._id} = {self.intermediaryRule}')
 
 	def __str__(self):
 		details = '{\n'

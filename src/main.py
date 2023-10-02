@@ -7,7 +7,7 @@ from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
 from grammar.YalpVisitor import YalpVisitor
 
-from tables import ClassesTable, VariablesTable, VariableObject, FunctionObject, FunctionsTable, TemporalsTable
+from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
@@ -360,16 +360,24 @@ class PostOrderVisitor(YalpVisitor):
     self.let_id = 0
     self.inherited_context = ''
     self.lastTemp = None
+    self.lastLoop = None
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
     node_type = type(node)
     if (node_type == YalpParser.R_classContext):
       self.class_context = node.getChild(1).getText()
+
+      if (self.class_context not in unoverloading):
+        print("", self.class_context)
       
     if (node_type == YalpParser.FunDeclarationContext):
       self.fun_context = node.getChild(0).getText()
       self.let_id = 0
+
+      if (self.class_context not in unoverloading):
+        print("   ", self.fun_context)
+        
 
     if (node_type == YalpParser.LetTenseContext):
       self.let_id += 1
@@ -470,6 +478,10 @@ class PostOrderVisitor(YalpVisitor):
     return self.checkFunctionCall(fun_name, child_types[6:-1], var_type)
 
   def visit(self, tree):
+    temporal_context = f'{self.class_context}-{self.fun_context}'
+    if (self.lastTemp != None and self.lastTemp.context != temporal_context):
+      self.lastTemp = None
+
     if isinstance(tree, TerminalNode):
       if (tree.getText() in unoverloading): return tree.getText()
       if (tree.getText() in ['SELF_TYPE', 'self']): return self.class_context
@@ -516,6 +528,24 @@ class PostOrderVisitor(YalpVisitor):
       # Visit the children first
       for i in range(child_count):
         child = tree.getChild(i)
+
+        if (child.getText() == "loop" 
+            or child.getText() == "else" 
+            or child.getText() == "then"):
+            
+          if (self.lastLoop == None):
+            current_id = 1
+          else:
+            current_id = self.lastLoop._id + 1
+
+          if (child.getText() == "else"): self.lastLoop.end()
+          self.lastLoop = LoopObject(
+            current_id,
+            temporal_context,
+            self.lastTemp._id
+          )
+          self.lastLoop.start(is_if=child.getText() == "then")
+
         child_types.append(self.visit(child))
 
       if child_count == 1: return child_types[0]
@@ -529,19 +559,20 @@ class PostOrderVisitor(YalpVisitor):
           pass
         
         if (self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
-          print(f'                {tree.getChild(0)} = t{self.lastTemp._id}')
+          print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
-          print(f'                {tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          print(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
           
         
-        self.lastTemp = None
-        print("-"*30)
         return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LetParamContext): return child_types[2]
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
+        print(self.lastLoop)
+        self.lastLoop = None
+
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for while')
           return ERROR_STRING
@@ -552,6 +583,8 @@ class PostOrderVisitor(YalpVisitor):
         return 'Object'
 
       if (node_type == YalpParser.IfTenseContext):
+        self.lastLoop.end()
+
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for if')
           return ERROR_STRING
@@ -647,7 +680,7 @@ class PostOrderVisitor(YalpVisitor):
           current_id = 1
         else:
           current_id = self.lastTemp._id + 1
- 
+
         added_temporal = temporals_table.add(current_id, context, tree.getText())
 
         if (self.lastTemp != None):
@@ -669,13 +702,10 @@ class PostOrderVisitor(YalpVisitor):
         except:
           pass
         if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
-          print(f'                {tree.getChild(0)} = t{self.lastTemp._id}')
+          print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
-          print(f'                {tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          print(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
         
-        self.lastTemp = None
-        print("-"*30)
-
 
         if (ERROR_STRING in child_types):
           variable = tree.getChild(0)
