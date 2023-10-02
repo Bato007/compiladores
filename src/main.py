@@ -360,7 +360,7 @@ class PostOrderVisitor(YalpVisitor):
     self.let_id = 0
     self.inherited_context = ''
     self.lastTemp = None
-    self.lastLoop = None
+    self.loops = []
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -433,7 +433,14 @@ class PostOrderVisitor(YalpVisitor):
 
     return parent_class
 
-  def checkFunctionCall(self, fun_name, full_params, class_name = None):
+  def checkFunctionCall(self, fun_name, full_params, class_name = None, children = []):
+    print(f'      {fun_name}')
+    
+    params = "".join(children).split(",")
+    for param in params:
+      print(f'            PARAM {param}')
+    print(f'            CALL {fun_name}')
+
     param_types = []
     for i in range(0, len(full_params), 2):
       param_types.append(full_params[i])
@@ -467,15 +474,15 @@ class PostOrderVisitor(YalpVisitor):
 
     return function.return_type
 
-  def varFunctionCall(self, node, child_types):
+  def varFunctionCall(self, node, child_types, children):
     var_type = child_types[0]
     fun_name = node.getChild(2).getText()
-    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type)
+    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children)
 
-  def parentFunctionCall(self, node, child_types):
+  def parentFunctionCall(self, node, child_types, children):
     var_type = node.getChild(2).getText()
     fun_name = node.getChild(4).getText()
-    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type)
+    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children)
 
   def visit(self, tree):
     temporal_context = f'{self.class_context}-{self.fun_context}'
@@ -521,6 +528,7 @@ class PostOrderVisitor(YalpVisitor):
 
     else:
       child_types = []
+      original_children = []
       node_type = type(tree)
       child_count = tree.getChildCount()
       self.updateContext(tree)
@@ -529,23 +537,26 @@ class PostOrderVisitor(YalpVisitor):
       for i in range(child_count):
         child = tree.getChild(i)
 
+        if (child.getText() == "fi"): self.loops.pop().end()
         if (child.getText() == "loop" 
             or child.getText() == "else" 
             or child.getText() == "then"):
             
-          if (self.lastLoop == None):
+          if (len(self.loops) == 0):
             current_id = 1
           else:
-            current_id = self.lastLoop._id + 1
+            current_id = self.loops[-1]._id + 1
 
-          if (child.getText() == "else"): self.lastLoop.end()
-          self.lastLoop = LoopObject(
+          if (child.getText() == "else"): self.loops.pop().end()
+          lastLoop = LoopObject(
             current_id,
             temporal_context,
             self.lastTemp._id
           )
-          self.lastLoop.start(is_if=child.getText() == "then")
+          self.loops.append(lastLoop)
+          self.loops[-1].start(is_if=child.getText() == "then")
 
+        original_children.append(child.getText())
         child_types.append(self.visit(child))
 
       if child_count == 1: return child_types[0]
@@ -558,6 +569,8 @@ class PostOrderVisitor(YalpVisitor):
         except:
           pass
         
+        # print(functions_table.table.keys())
+        # print("AYUDA", self.fun_context)
         if (self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
           print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
@@ -567,11 +580,11 @@ class PostOrderVisitor(YalpVisitor):
         return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LetParamContext): return child_types[2]
-      if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1])
+      if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1], children=original_children[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
-        print(self.lastLoop)
-        self.lastLoop = None
+        print(self.loops)
+        self.loops = []
 
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for while')
@@ -583,8 +596,6 @@ class PostOrderVisitor(YalpVisitor):
         return 'Object'
 
       if (node_type == YalpParser.IfTenseContext):
-        self.lastLoop.end()
-
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for if')
           return ERROR_STRING
@@ -764,12 +775,12 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.FunctionCallContext):
         isParentMethod = tree.getChild(1).getText() == '@'
         if isParentMethod:
-          return self.parentFunctionCall(tree, child_types)
+          return self.parentFunctionCall(tree, child_types, children=original_children)
 
         if (ERROR_STRING in child_types):
           return ERROR_STRING
         
-        return self.varFunctionCall(tree, child_types)
+        return self.varFunctionCall(tree, child_types, children=original_children)
 
       if (node_type == YalpParser.R_classContext):
         if (ERROR_STRING in child_types):
