@@ -1,42 +1,53 @@
-class Factorial {
-  	var: Int <- 0;
-  	
-  	factorial(n: Int) : Int {
-      {( let f : Int in
-      	 if n=0 then f<-0 else
-         if n=1 then f<-1 else
-        	 f<-n*factorial(n-1)
-         fi fi
-       );}
-    };
-  
-  };
-
-class Fibonacci {
-  	
-  	fibonacci(n: Int) : Int {
-        {( let f : Int in
-      	 if n=1 then f<-1 else
-         if n=2 then f<-1 else
-        	 f<-fibonacci(n-1)+fibonacci(n-2)
-         fi fi
-       );}
-     };
-  
-  };
-
 class Main inherits IO {
-    n: Int <- 10;
-  	facto: Factorial;
-  	fibo: Fibonacci;
-  
-  	main() : SELF_TYPE {
-	{
-	    facto <- new Factorial;
-      	fibo <- new Fibonacci;
-      	--out_int(facto.factorial(n));
-      	out_int(fibo.fibonacci(n));
-      	self;
-	}
+
+  out : Int <-		-- out is our 'output'.  It's values are the primes.
+    {
+      out_string("2 is trivially prime.\n");
+      2;
     };
+  
+  testee : Int <- out;	-- testee is a number to be tested for primeness.   
+  divisor : Int;	-- divisor is a number which may factor testee.
+  stop : Int <- 500;	-- stop is an arbitrary value limiting testee. 	
+
+  main() : Object {	-- main() is an atrophied method so we can parse. 
+     {
+      while true loop 
+      {
+
+        testee <- testee + 1;
+        divisor <- 2;
+
+        while 
+          if testee < divisor * divisor 
+            then false 		-- can stop if divisor > sqrt(testee).
+	  else if testee - divisor*(testee/divisor) = 0 
+            then false 		-- can stop if divisor divides testee. 
+            else true
+          fi fi     
+        loop 
+          divisor <- divisor + 1
+        pool;        
+
+        if testee < divisor * divisor	-- which reason did we stop for?
+        then 	-- testee has no factors less than sqrt(testee).
+          {
+            out <- testee;	-- we could think of out itself as the output.
+            out_int(out); 
+            out_string(" is prime.\n");
+          }
+        else	-- the loop halted on testee/divisor = 0, testee isn't prime.
+          0	-- testee isn't prime, do nothing.
+	fi;   	
+
+        if stop <= testee then 
+          "halt".abort()	-- we could think of "halt" as SIGTERM.
+        else 
+          "continue"
+        fi;       
+
+      } 
+    pool;
+    }
+  };
 };

@@ -477,17 +477,18 @@ class PostOrderVisitor(YalpVisitor):
   def varFunctionCall(self, node, child_types, children):
     var_type = child_types[0]
     fun_name = node.getChild(2).getText()
-    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children)
+    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children[4:-1])
 
   def parentFunctionCall(self, node, child_types, children):
     var_type = node.getChild(2).getText()
     fun_name = node.getChild(4).getText()
-    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children)
+    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children[6:-1])
 
   def visit(self, tree):
     temporal_context = f'{self.class_context}-{self.fun_context}'
     if (self.lastTemp != None and self.lastTemp.context != temporal_context):
       self.lastTemp = None
+      self.loops = []
 
     if isinstance(tree, TerminalNode):
       if (tree.getText() in unoverloading): return tree.getText()
@@ -537,7 +538,21 @@ class PostOrderVisitor(YalpVisitor):
       for i in range(child_count):
         child = tree.getChild(i)
 
-        if (child.getText() == "fi"): self.loops.pop().end()
+        if (child.getText() == "fi" or child.getText() == "pool"): self.loops.pop().end()
+        if (child.getText() == "then" or child.getText() == "while"):
+          next_condition = tree.getChild(i + 1).getText()
+          if (next_condition == "true" or next_condition == "false"):
+            # Saving temporary var
+            if (self.lastTemp == None):
+              current_id = 1
+            else:
+              current_id = self.lastTemp._id + 1
+
+            added_temporal = temporals_table.add(current_id, temporal_context, next_condition)
+            added_temporal.three_way_print()
+            
+            self.lastTemp = added_temporal
+
         if (child.getText() == "loop" 
             or child.getText() == "else" 
             or child.getText() == "then"):
@@ -583,9 +598,6 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1], children=original_children[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
-        print(self.loops)
-        self.loops = []
-
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
           print('>>>>>>', child_types[1], 'is a non valid operation for while')
           return ERROR_STRING
@@ -795,6 +807,8 @@ class PostOrderVisitor(YalpVisitor):
         return
 
       print('Type validation completed', class_types)
+    
+    print("ayudaaa ", node_type, child_types)
 
 input_stream = InputStream(input_string)
 lexer = YalpLexer(input_stream)
