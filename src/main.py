@@ -436,9 +436,9 @@ class PostOrderVisitor(YalpVisitor):
   def checkFunctionCall(self, fun_name, full_params, class_name = None, children = []):
     print(f'      {fun_name}')
     
-    params = "".join(children).split(",")
-    for param in params:
-      print(f'            PARAM {param}')
+    for param in children:
+      if (not param == ","):
+        print(f'            PARAM {param}')
     print(f'            CALL {fun_name}')
 
     param_types = []
@@ -563,6 +563,18 @@ class PostOrderVisitor(YalpVisitor):
             current_id = self.loops[-1]._id + 1
 
           if (child.getText() == "else"): self.loops.pop().end()
+
+          # TODO: Se tiene que obtener el return de la funcion
+          # y guardarlo como un temporal
+          if (self.lastTemp == None):
+            # Saving temporary var
+            current_id = 1
+
+            added_temporal = temporals_table.add(current_id, temporal_context, "VOID")
+            added_temporal.three_way_print()
+            
+            self.lastTemp = added_temporal
+
           lastLoop = LoopObject(
             current_id,
             temporal_context,
@@ -808,8 +820,6 @@ class PostOrderVisitor(YalpVisitor):
 
       print('Type validation completed', class_types)
     
-    print("ayudaaa ", node_type, child_types)
-
 input_stream = InputStream(input_string)
 lexer = YalpLexer(input_stream)
 token_stream = CommonTokenStream(lexer)
