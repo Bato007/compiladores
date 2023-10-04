@@ -49,6 +49,9 @@ class TemporalObject(object):
 	def setOffset(self, offset = 0):
 		self.offset = offset
 
+	def setReturnValue(self, newValue):
+		self.intermediaryRule = newValue
+
 	def setSize(self, size = 0):
 		try:
 			self.size = BASE_SIZES[self.type]
@@ -128,6 +131,8 @@ class TemporalsTable(object):
 			details += f'  {key} : ' + '{\n'
 			details += f'    name: t-{variable._id}\n'
 			details += f'    context: {variable.context}\n'
+			details += f'    size: {variable.size}\n'
+			details += f'    offset: {variable.offset}\n'
 		details += '}'
 		return details
 class VariableObject(object):
@@ -421,6 +426,23 @@ class ClassesTable(object):
 		if key not in self.table.keys():
 			return False
 		return True
+
+	def getSize(self, variables_table, functions_table):
+		size = 0
+
+		for key in self.table:
+			class_obj = self.table[key]
+			class_size = 0
+
+			for variable in class_obj.variables:
+				temp_variable = variables_table.get(variable, class_obj.name)
+				class_size += temp_variable.size
+			for function in class_obj.functions:
+				temp_function = functions_table.get(function, class_obj.name)
+				class_size += temp_function.size
+
+			size += class_size
+		return size
 
 	def __str__(self):
 		details = '{\n'

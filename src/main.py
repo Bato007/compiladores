@@ -7,10 +7,12 @@ from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
 from grammar.YalpVisitor import YalpVisitor
 
-from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable
+from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, BASE_SIZES
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
+
+temporals_set = set()
 
 classes_table = ClassesTable()
 variables_table = VariablesTable()
@@ -528,6 +530,7 @@ class PostOrderVisitor(YalpVisitor):
       return 'Void'
 
     else:
+      return_value_temporary = []
       child_types = []
       original_children = []
       node_type = type(tree)
@@ -538,6 +541,17 @@ class PostOrderVisitor(YalpVisitor):
       for i in range(child_count):
         child = tree.getChild(i)
 
+        child_text = child.getText()
+
+        if (
+          (child_text == 'fi' or child_text == 'pool' or child_text == 'else')
+          and (len(return_value_temporary) > 0)
+        ):
+          new_return_temporary = return_value_temporary.pop()
+          new_return_temporary.setReturnValue(child_types[-1])
+          new_return_temporary.three_way_print()
+          print(f'        return t{new_return_temporary._id}')
+
         if (child.getText() == "fi" or child.getText() == "pool"): self.loops.pop().end()
         if (child.getText() == "then" or child.getText() == "while"):
           next_condition = tree.getChild(i + 1).getText()
@@ -545,18 +559,22 @@ class PostOrderVisitor(YalpVisitor):
             # Saving temporary var
             if (self.lastTemp == None):
               current_id = 1
+              temporals_set.add(f't{current_id}')
             else:
               current_id = self.lastTemp._id + 1
+              temporals_set.add(f't{current_id}')
 
             added_temporal = temporals_table.add(current_id, temporal_context, next_condition)
             added_temporal.three_way_print()
             
             self.lastTemp = added_temporal
 
-        if (child.getText() == "loop" 
-            or child.getText() == "else" 
-            or child.getText() == "then"):
-            
+        if (
+          child.getText() == "loop" 
+          or child.getText() == "else" 
+          or child.getText() == "then"
+        ):
+
           if (len(self.loops) == 0):
             current_id = 1
           else:
@@ -569,10 +587,12 @@ class PostOrderVisitor(YalpVisitor):
           if (self.lastTemp == None):
             # Saving temporary var
             current_id = 1
+            temporals_set.add(f't{current_id}')
 
             added_temporal = temporals_table.add(current_id, temporal_context, "VOID")
             added_temporal.three_way_print()
             
+            return_value_temporary.append(added_temporal)
             self.lastTemp = added_temporal
 
           lastLoop = LoopObject(
@@ -591,7 +611,6 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
       if (node_type == YalpParser.Var_declarationsContext): 
         try:
-          # print("entra en Var_declarationsContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
           pass
         except:
           pass
@@ -713,8 +732,10 @@ class PostOrderVisitor(YalpVisitor):
         # Saving temporary var
         if (self.lastTemp == None):
           current_id = 1
+          temporals_set.add(f't{current_id}')
         else:
           current_id = self.lastTemp._id + 1
+          temporals_set.add(f't{current_id}')
 
         added_temporal = temporals_table.add(current_id, context, tree.getText())
 
@@ -831,7 +852,24 @@ visitor.compile(parse_tree)
 
 visitor = PostOrderVisitor(visitor.types)
 visitor.visit(parse_tree)
-# print(classes_table)
+
+class_table_size = classes_table.getSize(variables_table, functions_table)
+
+temporal_dic = {}
+current_offset = class_table_size
+temp_size = BASE_SIZES['Int']
+
+for temporal in temporals_set:
+  temporal_dic[temporal] = current_offset
+  current_offset += temp_size
+
+for temp_key in temporals_table.table:
+  temporal = temporals_table.table.get(temp_key)
+  temp_name = f't{temporal._id}'
+  temporal.setOffset(temporal_dic[temp_name])
+
+
+print(temporals_table)
 
 # for x in functions_table.table:
 #   print('>>>', functions_table.table[x])
