@@ -6,8 +6,9 @@ from constants import *
 from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
 from grammar.YalpVisitor import YalpVisitor
+from file import CreateFile
 
-from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, TemporalObject, BASE_SIZES
+from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, BASE_SIZES
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
@@ -18,6 +19,8 @@ classes_table = ClassesTable()
 variables_table = VariablesTable()
 functions_table = FunctionsTable()
 temporals_table = TemporalsTable()
+
+original_three_way_file = CreateFile("three_way.txt")
 
 def get_tree_line(tree):
   # Get the token interval associated with the tree node
@@ -372,14 +375,14 @@ class PostOrderVisitor(YalpVisitor):
       self.class_context = node.getChild(1).getText()
 
       if (self.class_context not in unoverloading):
-        print("", self.class_context)
+        original_three_way_file.add_line_to_txt(f'{self.class_context}')
       
     if (node_type == YalpParser.FunDeclarationContext):
       self.fun_context = node.getChild(0).getText()
       self.let_id = 0
 
       if (self.class_context not in unoverloading):
-        print("   ", self.fun_context)
+        original_three_way_file.add_line_to_txt(f'   {self.class_context}')
         
 
     if (node_type == YalpParser.LetTenseContext):
@@ -438,16 +441,16 @@ class PostOrderVisitor(YalpVisitor):
 
   def checkFunctionCall(self, fun_name, full_params, class_name = None, children = [], called_by=None):
     inner_params = []
-    print(f'      {fun_name}')
+    original_three_way_file.add_line_to_txt(f'      {fun_name}')
     
     for param in children:
       if (not param == ","):
         inner_params.append(param)
         if (self.lastTemp != None and param == self.lastTemp.intermediaryRule):
-          print(f'            PARAM t{self.lastTemp._id}')
+          original_three_way_file.add_line_to_txt(f'            PARAM t{self.lastTemp._id}')
           
         else:
-          print(f'            PARAM {param}')
+          original_three_way_file.add_line_to_txt(f'            PARAM {param}')
 
     
     temporal_context = f'{self.class_context}-{self.fun_context}'
@@ -483,7 +486,7 @@ class PostOrderVisitor(YalpVisitor):
     # added_temporal.three_way_print(tab="            ")
     self.lastTemp = added_temporal
     self.functionsTemp.append(current_id)
-    print(f'            t{current_id} = CALL {fun_name}')
+    original_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
 
     param_types = []
     for i in range(0, len(full_params), 2):
@@ -592,8 +595,8 @@ class PostOrderVisitor(YalpVisitor):
         ):
           new_return_temporary = return_value_temporary.pop()
           new_return_temporary.setReturnValue(child_types[-1])
-          new_return_temporary.three_way_print()
-          print(f'        return t{new_return_temporary._id}')
+          original_three_way_file.add_line_to_txt(new_return_temporary.three_way_print())
+          original_three_way_file.add_line_to_txt(f'        return t{new_return_temporary._id}')
 
         if (child.getText() == "fi" or child.getText() == "pool"): self.loops.pop().end()
         if (child.getText() == "pool"): self.loops.pop().end(is_while=True)
@@ -610,7 +613,7 @@ class PostOrderVisitor(YalpVisitor):
               temporals_set.add(f't{current_id}')
 
             added_temporal = temporals_table.add(current_id, temporal_context, next_condition)
-            added_temporal.three_way_print()
+            original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
             
             self.lastTemp = added_temporal
 
@@ -636,7 +639,7 @@ class PostOrderVisitor(YalpVisitor):
             temporals_set.add(f't{current_id}')
 
             added_temporal = temporals_table.add(current_id, temporal_context, "VOID")
-            added_temporal.three_way_print()
+            original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
             
             return_value_temporary.append(added_temporal)
             self.lastTemp = added_temporal
@@ -664,30 +667,17 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.ParentesisContext): return child_types[1]
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
       if (node_type == YalpParser.Var_declarationsContext): 
-        try:
-          pass
-        except:
-          pass
-        
-        # print(functions_table.table.keys())
-        # print("AYUDA", self.fun_context)
-        try:
-          # print("entra en AssignmentContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
-          pass
-        except:
-          pass
-        
         temporal_found = False
         for temp in self.functionsTemp:
           temp_content = temporals_table.get(temporal_context, temp)
           if temp_content in tree.getText().split("<-")[-1]:
-            print(f'	{tree.getChild(0)} = t{temp}')
+            original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{temp}')
             temporal_found = True
             break
         if (not temporal_found and self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
-          print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         elif (not temporal_found):
-          print(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
           
         
         return self.getVarDeclarationType(tree)
@@ -768,12 +758,6 @@ class PostOrderVisitor(YalpVisitor):
         node_type == YalpParser.ArithmeticalContext
         or node_type == YalpParser.LogicalContext
       ):
-        try:
-          # print("entra en ArithmeticalContext", self.lastTemp.originalRule, tree.getText())
-          pass
-        except:
-          pass
-
         leftOperand, _, rightOperand =  child_types
         if isinstance(rightOperand, list):
           rightOperand, temp = rightOperand
@@ -828,29 +812,22 @@ class PostOrderVisitor(YalpVisitor):
                   _id=tempId
                 )
 
-        added_temporal.three_way_print()
+        original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
         
         self.lastTemp = added_temporal
 
         return TYPES[key]
 
       if (node_type == YalpParser.AssignmentContext):
-        try:
-          # print(self.functionsTemp[-1])
-          # print("entra en AssignmentContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
-          pass
-        except:
-          pass
-            
         if (len(self.functionsTemp) > 0):
           last_function_call_id = self.functionsTemp[-1]
           inner_value = temporals_table.get(temporal_context=temporal_context, _id=last_function_call_id)
           temporal_assignment = tree.getText().split("<-")[-1].replace(inner_value, f't{last_function_call_id}')
-          print(f'	{tree.getChild(0)} = {temporal_assignment}')
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {temporal_assignment}')
         elif (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
-          print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
-          print(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
         
 
         if (ERROR_STRING in child_types):

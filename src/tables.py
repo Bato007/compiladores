@@ -14,18 +14,23 @@ class LoopObject(object):
 		self.goto = None
 
 	def start(self, is_if=False, is_while=False):
+		content = ""
 		if (is_if):
-			print(f'	if t{self.if_condition} goto L{self._id}')
-			print(f'	goto L{self._id + 1}')
+			content += (f'	if t{self.if_condition} goto L{self._id}')
+			content += (f'	goto L{self._id + 1}')
 		elif (is_while): # while
-			print(f'	if t{self.if_condition} goto L{self._id}')
-			print(f'	goto END_L{self._id - 1}')
-		print(f'	L{self._id}')
+			content += (f'	if t{self.if_condition} goto L{self._id}')
+			content += (f'	goto END_L{self._id - 1}')
+		content += (f'	L{self._id}')
+
+		return content
 
 	def end(self, is_while=False):
+		content = ""
 		if (is_while):
-			print(f'	goto L{self._id}')
-		print(f'	END_L{self._id}')
+			content += (f'	goto L{self._id}')
+		content += (f'	END_L{self._id}')
+		return content
 
 	def setGoto(self, goto):
 		self.goto = goto
@@ -77,7 +82,7 @@ class TemporalObject(object):
 		return self.size
 	
 	def three_way_print(self, tab="     	"):
-		print(f'{tab}t{self._id} = {self.intermediaryRule}')
+		return (f'{tab}t{self._id} = {self.intermediaryRule}')
 
 	def __str__(self):
 		details = '{\n'
