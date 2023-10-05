@@ -72,8 +72,8 @@ class TemporalObject(object):
 	def getSize(self):
 		return self.size
 	
-	def three_way_print(self):
-		print(f'	t{self._id} = {self.intermediaryRule}')
+	def three_way_print(self, tab="     	"):
+		print(f'{tab}t{self._id} = {self.intermediaryRule}')
 
 	def __str__(self):
 		details = '{\n'
@@ -82,6 +82,7 @@ class TemporalObject(object):
 		details += f'  size: {self.size}\n'
 		details += f'  offset: {self.offset}\n'
 		details += f'  intermediaryRule: {self.intermediaryRule}\n'
+		details += f'  originalRule: {self.originalRule}\n'
 		details += '}'
 		return details
 
@@ -122,7 +123,7 @@ class TemporalsTable(object):
 		key = f'{temporal_context}-t{_id}'
 		if not self.contains(temporal_context, _id):
 			return None
-		return self.table.get(key)
+		return self.table.get(key).originalRule
 
 	def __str__(self):
 		details = '{\n'

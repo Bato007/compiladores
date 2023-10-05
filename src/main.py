@@ -7,7 +7,7 @@ from grammar.YalpParser import YalpParser
 from grammar.YalpLexer import YalpLexer
 from grammar.YalpVisitor import YalpVisitor
 
-from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, BASE_SIZES
+from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, TemporalObject, BASE_SIZES
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
@@ -362,6 +362,7 @@ class PostOrderVisitor(YalpVisitor):
     self.let_id = 0
     self.inherited_context = ''
     self.lastTemp = None
+    self.functionsTemp = []
     self.loops = []
   
   # This function will update the context of the current visited branch
@@ -436,12 +437,34 @@ class PostOrderVisitor(YalpVisitor):
     return parent_class
 
   def checkFunctionCall(self, fun_name, full_params, class_name = None, children = []):
+    inner_params = []
     print(f'      {fun_name}')
     
     for param in children:
       if (not param == ","):
-        print(f'            PARAM {param}')
-    print(f'            CALL {fun_name}')
+        inner_params.append(param)
+        if (self.lastTemp != None and param == self.lastTemp.intermediaryRule):
+          print(f'            PARAM t{self.lastTemp._id}')
+          
+        else:
+          print(f'            PARAM {param}')
+
+    
+    temporal_context = f'{self.class_context}-{self.fun_context}'
+    function_call = f'{fun_name}({",".join(inner_params)})'
+    # Saving temporary var
+    if (self.lastTemp == None):
+      current_id = 1
+      temporals_set.add(f't{current_id}')
+    else:
+      current_id = self.lastTemp._id + 1
+      temporals_set.add(f't{current_id}')
+
+    added_temporal = temporals_table.add(current_id, temporal_context, function_call)
+    # added_temporal.three_way_print(tab="            ")
+    self.lastTemp = added_temporal
+    self.functionsTemp.append(current_id)
+    print(f'            t{current_id} = CALL {fun_name}')
 
     param_types = []
     for i in range(0, len(full_params), 2):
@@ -491,6 +514,7 @@ class PostOrderVisitor(YalpVisitor):
     if (self.lastTemp != None and self.lastTemp.context != temporal_context):
       self.lastTemp = None
       self.loops = []
+      self.functionsTemp = []
 
     if isinstance(tree, TerminalNode):
       if (tree.getText() in unoverloading): return tree.getText()
@@ -626,7 +650,8 @@ class PostOrderVisitor(YalpVisitor):
         return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LetParamContext): return child_types[2]
-      if (node_type == YalpParser.LocalFunCallContext): return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1], children=original_children[2:-1])
+      if (node_type == YalpParser.LocalFunCallContext): 
+        return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1], children=original_children[2:-1])
 
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
@@ -728,7 +753,6 @@ class PostOrderVisitor(YalpVisitor):
         # print("tree", tree.getText())
         context = f'{self.class_context}-{self.fun_context}'
 
-
         # Saving temporary var
         if (self.lastTemp == None):
           current_id = 1
@@ -745,6 +769,22 @@ class PostOrderVisitor(YalpVisitor):
             content=self.lastTemp.originalRule,
             _id=self.lastTemp._id
           )
+        # Checking if is function call
+        for tempId in self.functionsTemp:
+          inner_value = temporals_table.get(temporal_context=context, _id=tempId)
+          if (inner_value == tree.getChild(0).getText()):
+                added_temporal.setRule(
+                  rule=added_temporal.intermediaryRule,
+                  content=inner_value,
+                  _id=tempId
+                )
+          elif (inner_value == tree.getChild(2).getText()):
+                added_temporal.setRule(
+                  rule=added_temporal.intermediaryRule,
+                  content=inner_value,
+                  _id=tempId
+                )
+
         added_temporal.three_way_print()
         
         self.lastTemp = added_temporal
