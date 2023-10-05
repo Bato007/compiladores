@@ -436,7 +436,7 @@ class PostOrderVisitor(YalpVisitor):
 
     return parent_class
 
-  def checkFunctionCall(self, fun_name, full_params, class_name = None, children = []):
+  def checkFunctionCall(self, fun_name, full_params, class_name = None, children = [], called_by=None):
     inner_params = []
     print(f'      {fun_name}')
     
@@ -451,7 +451,11 @@ class PostOrderVisitor(YalpVisitor):
 
     
     temporal_context = f'{self.class_context}-{self.fun_context}'
-    function_call = f'{fun_name}({",".join(inner_params)})'
+    if (called_by != None):
+      function_call = f'{called_by}.{fun_name}({",".join(inner_params)})'
+    else:
+      function_call = f'{fun_name}({",".join(inner_params)})'
+
     # Saving temporary var
     if (self.lastTemp == None):
       current_id = 1
@@ -460,7 +464,22 @@ class PostOrderVisitor(YalpVisitor):
       current_id = self.lastTemp._id + 1
       temporals_set.add(f't{current_id}')
 
+
     added_temporal = temporals_table.add(current_id, temporal_context, function_call)
+    # Saving temporary var
+    if (len(self.functionsTemp) > 0):
+      for _function_call_id in self.functionsTemp:
+        last_function_call_id = _function_call_id
+        inner_value = temporals_table.get(temporal_context=temporal_context, _id=last_function_call_id)
+
+        for inner_param in inner_params:
+          if (inner_value == inner_param):
+              added_temporal.setRule(
+                rule=added_temporal.intermediaryRule,
+                content=inner_value,
+                _id=last_function_call_id
+              )
+    # print("added_temporal ", added_temporal)
     # added_temporal.three_way_print(tab="            ")
     self.lastTemp = added_temporal
     self.functionsTemp.append(current_id)
@@ -502,12 +521,12 @@ class PostOrderVisitor(YalpVisitor):
   def varFunctionCall(self, node, child_types, children):
     var_type = child_types[0]
     fun_name = node.getChild(2).getText()
-    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children[4:-1])
+    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children[4:-1], children[0])
 
   def parentFunctionCall(self, node, child_types, children):
     var_type = node.getChild(2).getText()
     fun_name = node.getChild(4).getText()
-    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children[6:-1])
+    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children[6:-1], children[2])
 
   def visit(self, tree):
     temporal_context = f'{self.class_context}-{self.fun_context}'
@@ -822,8 +841,13 @@ class PostOrderVisitor(YalpVisitor):
           pass
         except:
           pass
-        
-        if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
+            
+        if (len(self.functionsTemp) > 0):
+          last_function_call_id = self.functionsTemp[-1]
+          inner_value = temporals_table.get(temporal_context=temporal_context, _id=last_function_call_id)
+          temporal_assignment = tree.getText().split("<-")[-1].replace(inner_value, f't{last_function_call_id}')
+          print(f'	{tree.getChild(0)} = {temporal_assignment}')
+        elif (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
           print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
           print(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
