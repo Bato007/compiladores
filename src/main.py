@@ -652,9 +652,22 @@ class PostOrderVisitor(YalpVisitor):
         
         # print(functions_table.table.keys())
         # print("AYUDA", self.fun_context)
-        if (self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
+        try:
+          # print("entra en AssignmentContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
+          pass
+        except:
+          pass
+        
+        temporal_found = False
+        for temp in self.functionsTemp:
+          temp_content = temporals_table.get(temporal_context, temp)
+          if temp_content in tree.getText().split("<-")[-1]:
+            print(f'	{tree.getChild(0)} = t{temp}')
+            temporal_found = True
+            break
+        if (not temporal_found and self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
           print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
-        else:
+        elif (not temporal_found):
           print(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
           
         
@@ -804,10 +817,12 @@ class PostOrderVisitor(YalpVisitor):
 
       if (node_type == YalpParser.AssignmentContext):
         try:
+          # print(self.functionsTemp[-1])
           # print("entra en AssignmentContext", self.lastTemp.originalRule, tree.getText().split("<-")[-1])
           pass
         except:
           pass
+        
         if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
           print(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
