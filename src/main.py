@@ -577,6 +577,8 @@ class PostOrderVisitor(YalpVisitor):
           print(f'        return t{new_return_temporary._id}')
 
         if (child.getText() == "fi" or child.getText() == "pool"): self.loops.pop().end()
+        if (child.getText() == "pool"): self.loops.pop().end(is_while=True)
+
         if (child.getText() == "then" or child.getText() == "while"):
           next_condition = tree.getChild(i + 1).getText()
           if (next_condition == "true" or next_condition == "false"):
@@ -594,9 +596,10 @@ class PostOrderVisitor(YalpVisitor):
             self.lastTemp = added_temporal
 
         if (
-          child.getText() == "loop" 
+          child.getText() == "while" 
           or child.getText() == "else" 
           or child.getText() == "then"
+          or child.getText() == "loop"
         ):
 
           if (len(self.loops) == 0):
@@ -608,7 +611,7 @@ class PostOrderVisitor(YalpVisitor):
 
           # TODO: Se tiene que obtener el return de la funcion
           # y guardarlo como un temporal
-          if (self.lastTemp == None):
+          if (self.lastTemp == None and child.getText() != "while" ):
             # Saving temporary var
             current_id = 1
             temporals_set.add(f't{current_id}')
@@ -619,13 +622,21 @@ class PostOrderVisitor(YalpVisitor):
             return_value_temporary.append(added_temporal)
             self.lastTemp = added_temporal
 
-          lastLoop = LoopObject(
-            current_id,
-            temporal_context,
-            self.lastTemp._id
-          )
+          if (child.getText() == "while"):
+            next_id = self.lastTemp._id + 1 if (self.lastTemp != None) else 1
+            lastLoop = LoopObject(
+              current_id,
+              temporal_context,
+              next_id
+            )
+          else:
+            lastLoop = LoopObject(
+              current_id,
+              temporal_context,
+              self.lastTemp._id
+            )
           self.loops.append(lastLoop)
-          self.loops[-1].start(is_if=child.getText() == "then")
+          self.loops[-1].start(is_if=child.getText() == "then", is_while=child.getText() == "loop")
 
         original_children.append(child.getText())
         child_types.append(self.visit(child))

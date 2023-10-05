@@ -13,14 +13,18 @@ class LoopObject(object):
 		self.if_condition = if_condition
 		self.goto = None
 
-	def start(self, is_if=False):
+	def start(self, is_if=False, is_while=False):
 		if (is_if):
 			print(f'	if t{self.if_condition} goto L{self._id}')
 			print(f'	goto L{self._id + 1}')
-
+		elif (is_while): # while
+			print(f'	if t{self.if_condition} goto L{self._id}')
+			print(f'	goto END_L{self._id - 1}')
 		print(f'	L{self._id}')
 
-	def end(self):
+	def end(self, is_while=False):
+		if (is_while):
+			print(f'	goto L{self._id}')
 		print(f'	END_L{self._id}')
 
 	def setGoto(self, goto):
