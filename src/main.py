@@ -819,13 +819,13 @@ class PostOrderVisitor(YalpVisitor):
         return TYPES[key]
 
       if (node_type == YalpParser.AssignmentContext):
-        if (len(self.functionsTemp) > 0):
+        if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
+        elif (len(self.functionsTemp) > 0):
           last_function_call_id = self.functionsTemp[-1]
           inner_value = temporals_table.get(temporal_context=temporal_context, _id=last_function_call_id)
           temporal_assignment = tree.getText().split("<-")[-1].replace(inner_value, f't{last_function_call_id}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {temporal_assignment}')
-        elif (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
-          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         else:
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
         

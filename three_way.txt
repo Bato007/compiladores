@@ -23,7 +23,7 @@ A
             PARAM x
             t3 = CALL set_var
      	t4 = num2-num1
-	x = num2-num1
+	x = t4
       set_var
             PARAM x
             t5 = CALL set_var
