@@ -2,7 +2,7 @@ A
 	var = 0
    A
    A
-	var = num
+  var = num
    A
    A
      	t1 = num1+num2
@@ -11,7 +11,7 @@ A
             PARAM x
             t2 = CALL set_var
    A
-	x = ~num
+  x = ~num
       set_var
             PARAM x
             t1 = CALL set_var
@@ -45,7 +45,7 @@ B
             t2 = CALL set_var
 C
    C
-	x = ~num
+  x = ~num
       set_var
             PARAM x
             t1 = CALL set_var
@@ -98,7 +98,7 @@ Main
             PARAM t7
             t8 = CALL is_even
    Main
-	avar = (newA)
+  avar = (newA)
       set_var
             PARAM 2
             t1 = CALL set_var

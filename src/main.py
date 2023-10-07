@@ -21,6 +21,8 @@ functions_table = FunctionsTable()
 temporals_table = TemporalsTable()
 
 original_three_way_file = CreateFile("three_way.txt")
+intermittent_address_three_way_file = CreateFile("intermittent_address.txt")
+address_three_way_file = CreateFile("address_three_way.txt")
 
 def get_tree_line(tree):
   # Get the token interval associated with the tree node
@@ -367,6 +369,7 @@ class PostOrderVisitor(YalpVisitor):
     self.lastTemp = None
     self.functionsTemp = []
     self.loops = []
+    self.temporal_context = ''
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -375,6 +378,7 @@ class PostOrderVisitor(YalpVisitor):
       self.class_context = node.getChild(1).getText()
 
       if (self.class_context not in unoverloading):
+        intermittent_address_three_way_file.add_line_to_txt(f'{self.class_context}')
         original_three_way_file.add_line_to_txt(f'{self.class_context}')
       
     if (node_type == YalpParser.FunDeclarationContext):
@@ -382,6 +386,7 @@ class PostOrderVisitor(YalpVisitor):
       self.let_id = 0
 
       if (self.class_context not in unoverloading):
+        intermittent_address_three_way_file.add_line_to_txt(f'   {self.class_context}')
         original_three_way_file.add_line_to_txt(f'   {self.class_context}')
         
 
@@ -441,6 +446,9 @@ class PostOrderVisitor(YalpVisitor):
 
   def checkFunctionCall(self, fun_name, full_params, class_name = None, children = [], called_by=None):
     inner_params = []
+    class_context = self.class_context if class_name is None else class_name
+    
+    intermittent_address_three_way_file.add_line_to_txt(f'      {fun_name}')
     original_three_way_file.add_line_to_txt(f'      {fun_name}')
     
     for param in children:
@@ -448,12 +456,13 @@ class PostOrderVisitor(YalpVisitor):
         inner_params.append(param)
         if (self.lastTemp != None and param == self.lastTemp.intermediaryRule):
           original_three_way_file.add_line_to_txt(f'            PARAM t{self.lastTemp._id}')
-          
+          intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {self.temporal_context}-t{self.lastTemp._id}')
         else:
+          intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {functions_table.get(fun_name, class_context).context}-{fun_name}-{param}')
           original_three_way_file.add_line_to_txt(f'            PARAM {param}')
 
     
-    temporal_context = f'{self.class_context}-{self.fun_context}'
+    self.temporal_context = f'{self.class_context}-{self.fun_context}'
     if (called_by != None):
       function_call = f'{called_by}.{fun_name}({",".join(inner_params)})'
     else:
@@ -468,12 +477,12 @@ class PostOrderVisitor(YalpVisitor):
       temporals_set.add(f't{current_id}')
 
 
-    added_temporal = temporals_table.add(current_id, temporal_context, function_call)
+    added_temporal = temporals_table.add(current_id, self.temporal_context, function_call)
     # Saving temporary var
     if (len(self.functionsTemp) > 0):
       for _function_call_id in self.functionsTemp:
         last_function_call_id = _function_call_id
-        inner_value = temporals_table.get(temporal_context=temporal_context, _id=last_function_call_id)
+        inner_value = temporals_table.get(temporal_context=self.temporal_context, _id=last_function_call_id)
 
         for inner_param in inner_params:
           if (inner_value == inner_param):
@@ -487,15 +496,14 @@ class PostOrderVisitor(YalpVisitor):
     self.lastTemp = added_temporal
     self.functionsTemp.append(current_id)
     original_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
+    intermittent_address_three_way_file.add_line_to_txt(f'            {self.temporal_context}-t{current_id} = CALL {fun_name}')
 
     param_types = []
     for i in range(0, len(full_params), 2):
       param_types.append(full_params[i])
 
-    class_context = self.class_context if class_name is None else class_name
-
+  
     function = functions_table.get(fun_name, class_context)
-
     if (function is None):
       print(fun_name, class_context)
       print('>>> Function doesnt exists in class', class_context)
@@ -519,6 +527,7 @@ class PostOrderVisitor(YalpVisitor):
     else:
       self.inherited_context = None
 
+
     return function.return_type
 
   def varFunctionCall(self, node, child_types, children):
@@ -532,8 +541,8 @@ class PostOrderVisitor(YalpVisitor):
     return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children[6:-1], children[2])
 
   def visit(self, tree):
-    temporal_context = f'{self.class_context}-{self.fun_context}'
-    if (self.lastTemp != None and self.lastTemp.context != temporal_context):
+    self.temporal_context = f'{self.class_context}-{self.fun_context}'
+    if (self.lastTemp != None and self.lastTemp.context != self.temporal_context):
       self.lastTemp = None
       self.loops = []
       self.functionsTemp = []
@@ -612,7 +621,7 @@ class PostOrderVisitor(YalpVisitor):
               current_id = self.lastTemp._id + 1
               temporals_set.add(f't{current_id}')
 
-            added_temporal = temporals_table.add(current_id, temporal_context, next_condition)
+            added_temporal = temporals_table.add(current_id, self.temporal_context, next_condition)
             original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
             
             self.lastTemp = added_temporal
@@ -638,7 +647,7 @@ class PostOrderVisitor(YalpVisitor):
             current_id = 1
             temporals_set.add(f't{current_id}')
 
-            added_temporal = temporals_table.add(current_id, temporal_context, "VOID")
+            added_temporal = temporals_table.add(current_id, self.temporal_context, "VOID")
             original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
             
             return_value_temporary.append(added_temporal)
@@ -648,13 +657,13 @@ class PostOrderVisitor(YalpVisitor):
             next_id = self.lastTemp._id + 1 if (self.lastTemp != None) else 1
             lastLoop = LoopObject(
               current_id,
-              temporal_context,
+              self.temporal_context,
               next_id
             )
           else:
             lastLoop = LoopObject(
               current_id,
-              temporal_context,
+              self.temporal_context,
               self.lastTemp._id
             )
           self.loops.append(lastLoop)
@@ -669,14 +678,17 @@ class PostOrderVisitor(YalpVisitor):
       if (node_type == YalpParser.Var_declarationsContext): 
         temporal_found = False
         for temp in self.functionsTemp:
-          temp_content = temporals_table.get(temporal_context, temp)
+          temp_content = temporals_table.get(self.temporal_context, temp)
           if temp_content in tree.getText().split("<-")[-1]:
-            original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{temp}')
+            intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = t{temp}')
+            original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{temp}')
             temporal_found = True
             break
         if (not temporal_found and self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
-          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
+          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = t{self.lastTemp._id}')
+          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
         elif (not temporal_found):
+          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {tree.getChild(-1).getText()}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
           
         
@@ -778,8 +790,6 @@ class PostOrderVisitor(YalpVisitor):
 
         # print("key", key)
         # print("tree", tree.getText())
-        context = f'{self.class_context}-{self.fun_context}'
-
         # Saving temporary var
         if (self.lastTemp == None):
           current_id = 1
@@ -788,7 +798,7 @@ class PostOrderVisitor(YalpVisitor):
           current_id = self.lastTemp._id + 1
           temporals_set.add(f't{current_id}')
 
-        added_temporal = temporals_table.add(current_id, context, tree.getText())
+        added_temporal = temporals_table.add(current_id, self.temporal_context, tree.getText())
 
         if (self.lastTemp != None):
           added_temporal.setRule(
@@ -798,7 +808,7 @@ class PostOrderVisitor(YalpVisitor):
           )
         # Checking if is function call
         for tempId in self.functionsTemp:
-          inner_value = temporals_table.get(temporal_context=context, _id=tempId)
+          inner_value = temporals_table.get(temporal_context=self.temporal_context, _id=tempId)
           if (inner_value == tree.getChild(0).getText()):
                 added_temporal.setRule(
                   rule=added_temporal.intermediaryRule,
@@ -812,6 +822,8 @@ class PostOrderVisitor(YalpVisitor):
                   _id=tempId
                 )
 
+
+        intermittent_address_three_way_file.add_line_to_txt(added_temporal.three_way_print())
         original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
         
         self.lastTemp = added_temporal
@@ -820,14 +832,18 @@ class PostOrderVisitor(YalpVisitor):
 
       if (node_type == YalpParser.AssignmentContext):
         if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
+          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         elif (len(self.functionsTemp) > 0):
           last_function_call_id = self.functionsTemp[-1]
-          inner_value = temporals_table.get(temporal_context=temporal_context, _id=last_function_call_id)
+          inner_value = temporals_table.get(temporal_context=self.temporal_context, _id=last_function_call_id)
           temporal_assignment = tree.getText().split("<-")[-1].replace(inner_value, f't{last_function_call_id}')
+
+          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-{temporal_assignment}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {temporal_assignment}')
         else:
-          original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          original_three_way_file.add_line_to_txt(f'  {tree.getChild(0)} = {tree.getChild(-1).getText()}')
         
 
         if (ERROR_STRING in child_types):
@@ -943,6 +959,7 @@ for item in classes_table.table:
   # We check the absolute offset of the variables
   for var_name in class_item.variables:
     var_item = variables_table.table.get(f'{class_item.name}-{var_name}')
+    var_item.setAbsoluteOffset(absolute_offset)
     absolute_offset += var_item.size
 
   for fun_name in class_item.functions:
@@ -987,9 +1004,24 @@ for item in classes_table.table:
         let_param_item.setAbsoluteOffset(absolute_offset)
         absolute_offset += let_param_item.size
 
-print(variables_table)
-print(absolute_offset, class_table_size)
+# Using readlines()
+intermittent_address_three_way_file.close_txt_file()
+file1 = open('intermittent_address.txt', 'r')
+Lines = file1.readlines()
+ 
+# Strips the newline character
+for line in Lines:
+  new_line = line
+  for var in variables_table.table:
+    if (var in line):
+      var_ = var.split("-")
+      new_line = line.replace(var, f'GP[{variables_table.get(var_[1], var_[0]).offset}]')
+  
+  for temp in temporals_table.table:
+    if (temp in line):
+      new_line = line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
 
+  address_three_way_file.add_line_to_txt(new_line.rstrip())
 # for variable in variables_table.table:
 #   print(variable)
 

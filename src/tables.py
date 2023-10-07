@@ -133,6 +133,12 @@ class TemporalsTable(object):
 		if not self.contains(temporal_context, _id):
 			return None
 		return self.table.get(key).originalRule
+	
+	def getByKey(
+		self,
+		key,
+	):
+		return self.table.get(key)
 
 	def __str__(self):
 		details = '{\n'
