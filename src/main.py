@@ -1020,11 +1020,13 @@ for line in Lines:
   for var in variables_table.table:
     if (var in line):
       var_ = var.split("-")
-      new_line = new_line.replace(var, f'GP[{variables_table.get(var_[1], var_[0]).offset}]')
+      if (variables_table.get(var_[1], var_[0]) != None): 
+        new_line = new_line.replace(var, f'GP[{variables_table.get(var_[1], var_[0]).offset}]')
   
   for temp in sorted(temporals_table.table, reverse=True):
     if (temp in line):
-      new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
+      if (temporals_table.getByKey(temp) != None): 
+        new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
 
   address_three_way_file.add_line_to_txt(new_line.rstrip())
 # for variable in variables_table.table:

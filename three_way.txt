@@ -1,210 +1,42 @@
-A
+Factorial
 	var = 0
-   A
-   A
-  var = num
-   A
-   A
-     	t1 = num1+num2
-	x = t1
-      set_var
-            PARAM x
-            t2 = CALL set_var
-   A
-  x = ~num
-      set_var
-            PARAM x
-            t1 = CALL set_var
-   A
-     	t1 = num2<num1
-     	t2 = num1-num2
-	x = t2
-      set_var
-            PARAM x
-            t3 = CALL set_var
-     	t4 = num2-num1
-	x = t4
-      set_var
-            PARAM x
-            t5 = CALL set_var
-   A
-     	t1 = y<=num
-     	t2 = x*y
-	x = t2
-     	t3 = y+1
-	y = t3
-      set_var
-            PARAM x
-            t4 = CALL set_var
-B
-   B
-     	t1 = num*num
-	x = t1
-      set_var
-            PARAM x
-            t2 = CALL set_var
-C
-   C
-  x = ~num
-      set_var
-            PARAM x
-            t1 = CALL set_var
-   C
-     	t1 = num*num
-     	t2 = C-method5-t1*num
-	x = t2
-      set_var
-            PARAM x
-            t3 = CALL set_var
-D
-   D
-     	t1 = x<0
-      method7
-            PARAM ~x
-            t2 = CALL method7
-     	t3 = 0=x
-     	t4 = true
-     	t5 = 1=x
-     	t6 = false
-     	t7 = 2=x
-     	t8 = false
-     	t9 = x-3
-      method7
-            PARAM t9
-            t10 = CALL method7
-E
-   E
-     	t1 = num/8
-	x = t1
-      set_var
-            PARAM x
-            t2 = CALL set_var
+   Factorial
+     	t1 = n=0
+  f = 0
+     	t2 = n=1
+  f = 1
+     	t3 = n-1
+      factorial
+            PARAM t3
+            t4 = CALL factorial
+     	t5 = n*Factorial-factorial-t4
+	f = t5
+Fibonacci
+   Fibonacci
+     	t1 = n=1
+  f = 1
+     	t2 = n=2
+  f = 1
+     	t3 = n-1
+      fibonacci
+            PARAM t3
+            t4 = CALL fibonacci
+     	t5 = n-2
+      fibonacci
+            PARAM t5
+            t6 = CALL fibonacci
+     	t7 = Fibonacci-fibonacci-t4+Fibonacci-fibonacci-t6
+	f = t7
 Main
-	char = String
-	avar = A
-	a_var = A
-	flag = true
+	n = 10
+	facto = Factorial
+	fibo = Fibonacci
    Main
-     	t1 = x<0
-      is_even
-            PARAM ~x
-            t2 = CALL is_even
-     	t3 = 0=x
-     	t4 = true
-     	t5 = 1=x
-     	t6 = false
-     	t7 = x-2
-      is_even
-            PARAM t7
-            t8 = CALL is_even
-   Main
-  avar = (newA)
-      set_var
-            PARAM 2
-            t1 = CALL set_var
-      value
-            t2 = CALL value
+  facto = newFactorial
+  fibo = newFibonacci
+      fibonacci
+            PARAM n
+            t1 = CALL fibonacci
       out_int
-            PARAM t2
-            t3 = CALL out_int
-      value
-            t4 = CALL value
-      is_even
-            PARAM t4
-            t5 = CALL is_even
-      out_string
-            PARAM " es par!\n"
-            t6 = CALL out_string
-      out_string
-            PARAM " es impar!\n"
-            t7 = CALL out_string
-      set_var
-            PARAM 3
-            t8 = CALL set_var
-	a_var = t8
-      value
-            t9 = CALL value
-      value
-            t10 = CALL value
-      method2
-            PARAM avar.value()
-            PARAM t10
-            t11 = CALL method2
-	avar = t11
-      value
-            t12 = CALL value
-      out_int
-            PARAM t12
-            t13 = CALL out_int
-      out_string
-            PARAM "\n"
-            t14 = CALL out_string
-      value
-            t15 = CALL value
-      method6
-            PARAM t15
-            t16 = CALL method6
-	avar = t16
-      value
-            t17 = CALL value
-      out_int
-            PARAM t17
-            t18 = CALL out_int
-      out_string
-            PARAM "\n"
-            t19 = CALL out_string
-      set_var
-            PARAM 5
-            t20 = CALL set_var
-	a_var = t20
-      value
-            t21 = CALL value
-      value
-            t22 = CALL value
-      method4
-            PARAM avar.value()
-            PARAM t22
-            t23 = CALL method4
-	avar = t23
-      value
-            t24 = CALL value
-      out_int
-            PARAM t24
-            t25 = CALL out_int
-      out_string
-            PARAM "\n"
-            t26 = CALL out_string
-      set_var
-            PARAM 5
-            t27 = CALL set_var
-      value
-            t28 = CALL value
-      method5
-            PARAM t28
-            t29 = CALL method5
-	avar = (newC)@t29
-      value
-            t30 = CALL value
-      out_int
-            PARAM t30
-            t31 = CALL out_int
-      out_string
-            PARAM "\n"
-            t32 = CALL out_string
-      set_var
-            PARAM 6
-            t33 = CALL set_var
-      value
-            t34 = CALL value
-      method5
-            PARAM t34
-            t35 = CALL method5
-	avar = (newC)@t35
-      value
-            t36 = CALL value
-      out_int
-            PARAM t36
-            t37 = CALL out_int
-      out_string
-            PARAM "\n"
-            t38 = CALL out_string
+            PARAM t1
+            t2 = CALL out_int

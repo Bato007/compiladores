@@ -1,205 +1,42 @@
-A
+Factorial
       GP[0] = 0
-   A
-   A
-      GP[0] = num
-   A
-   A
-     	GP[361] = num1+num2
-      A-x = GP[361]
-      set_var
-            PARAM A-set_var-x
-            GP[417] = CALL set_var
-   A
-      A-x = ~num
-      set_var
-            PARAM A-set_var-x
-            GP[361] = CALL set_var
-   A
-     	GP[361] = num2<num1
-     	GP[417] = num1-num2
-      A-x = GP[417]
-      set_var
-            PARAM A-set_var-x
-            GP[289] = CALL set_var
-     	GP[325] = num2-num1
-      A-x = GP[325]
-      set_var
-            PARAM A-set_var-x
-            GP[389] = CALL set_var
-   A
-     	GP[361] = y<=num
-     	GP[417] = x*y
-      A-x = GP[417]
-     	GP[289] = y+1
-      A-y = GP[289]
-      set_var
-            PARAM A-set_var-x
-            GP[325] = CALL set_var
-B
-   B
-     	GP[361] = num*num
-      B-x = GP[361]
-      set_var
-            PARAM A-set_var-x
-            GP[417] = CALL set_var
-C
-   C
-      C-x = ~num
-      set_var
-            PARAM A-set_var-x
-            GP[361] = CALL set_var
-   C
-     	GP[361] = num*num
-     	GP[417] = GP[361]*num
-      C-x = GP[417]
-      set_var
-            PARAM A-set_var-x
-            GP[289] = CALL set_var
-D
-   D
-     	GP[361] = x<0
-      method7
-            PARAM D-method7-~x
-            GP[417] = CALL method7
-     	GP[289] = 0=x
-     	GP[389] = 1=x
-     	GP[333] = 2=x
-     	GP[369] = x-3
-      method7
-            PARAM GP[369]
-            GP[313] = CALL method7
-E
-   E
-     	GP[361] = num/8
-      E-x = GP[361]
-      set_var
-            PARAM A-set_var-x
-            GP[417] = CALL set_var
+   Factorial
+     	GP[104] = n=0
+      Factorial-f = 0
+     	GP[108] = n=1
+      Factorial-f = 1
+     	GP[112] = n-1
+      factorial
+            PARAM GP[112]
+            GP[92] = CALL factorial
+     	GP[88] = n*GP[92]
+      Factorial-f = GP[88]
+Fibonacci
+   Fibonacci
+     	GP[104] = n=1
+      Fibonacci-f = 1
+     	GP[108] = n=2
+      Fibonacci-f = 1
+     	GP[112] = n-1
+      fibonacci
+            PARAM GP[112]
+            GP[92] = CALL fibonacci
+     	GP[88] = n-2
+      fibonacci
+            PARAM GP[88]
+            GP[96] = CALL fibonacci
+     	GP[100] = GP[92]+GP[96]
+      Fibonacci-f = GP[100]
 Main
-      GP[0] = String
-      GP[16] = A
-      GP[76] = A
-      GP[136] = true
+      GP[0] = 10
+      GP[4] = Factorial
+      GP[16] = Fibonacci
    Main
-     	GP[361] = x<0
-      is_even
-            PARAM Main-is_even-~x
-            GP[417] = CALL is_even
-     	GP[289] = 0=x
-     	GP[389] = 1=x
-     	GP[333] = x-2
-      is_even
-            PARAM GP[333]
-            GP[433] = CALL is_even
-   Main
-      GP[16] = (newA)
-      set_var
-            PARAM A-set_var-2
-            GP[361] = CALL set_var
-      value
-            GP[417] = CALL value
+      GP[4] = newFactorial
+      GP[16] = newFibonacci
+      fibonacci
+            PARAM Fibonacci-fibonacci-n
+            GP[104] = CALL fibonacci
       out_int
-            PARAM GP[417]
-            GP[289] = CALL out_int
-      value
-            GP[325] = CALL value
-      is_even
-            PARAM GP[325]
-            GP[389] = CALL is_even
-      out_string
-            PARAM IO-out_string-" es par!\n"
-            GP[317] = CALL out_string
-      out_string
-            PARAM IO-out_string-" es impar!\n"
-            GP[333] = CALL out_string
-      set_var
-            PARAM A-set_var-3
-            GP[433] = CALL set_var
-      GP[76] = GP[433]
-      value
-            GP[369] = CALL value
-      value
-            GP[313] = CALL value
-      method2
-            PARAM A-method2-avar.value()
-            PARAM GP[313]
-            GP[429] = CALL method2
-      GP[16] = GP[429]
-      value
-            GP[297] = CALL value
-      out_int
-            PARAM GP[297]
-            GP[349] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[405] = CALL out_string
-      value
-            GP[337] = CALL value
-      method6
-            PARAM GP[337]
-            GP[437] = CALL method6
-      GP[16] = GP[437]
-      value
-            GP[309] = CALL value
-      out_int
-            PARAM GP[309]
-            GP[301] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[413] = CALL out_string
-      set_var
-            PARAM A-set_var-5
-            GP[421] = CALL set_var
-      GP[76] = GP[421]
-      value
-            GP[381] = CALL value
-      value
-            GP[341] = CALL value
-      method4
-            PARAM A-method4-avar.value()
-            PARAM GP[341]
-            GP[409] = CALL method4
-      GP[16] = GP[409]
-      value
-            GP[365] = CALL value
-      out_int
-            PARAM GP[365]
-            GP[425] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[393] = CALL out_string
-      set_var
-            PARAM A-set_var-5
-            GP[377] = CALL set_var
-      value
-            GP[353] = CALL value
-      method5
-            PARAM GP[353]
-            GP[321] = CALL method5
-      GP[16] = Main-main-(newC)@t29
-      value
-            GP[385] = CALL value
-      out_int
-            PARAM GP[385]
-            GP[397] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[293] = CALL out_string
-      set_var
-            PARAM A-set_var-6
-            GP[401] = CALL set_var
-      value
-            GP[373] = CALL value
-      method5
-            PARAM GP[373]
-            GP[357] = CALL method5
-      GP[16] = Main-main-(newC)@t35
-      value
-            GP[305] = CALL value
-      out_int
-            PARAM GP[305]
-            GP[345] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[329] = CALL out_string
+            PARAM GP[104]
+            GP[108] = CALL out_int
