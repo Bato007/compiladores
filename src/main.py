@@ -935,8 +935,63 @@ for temp_key in temporals_table.table:
   temp_name = f't{temporal._id}'
   temporal.setOffset(temporal_dic[temp_name])
 
+# Gets the absolute offsets
+absolute_offset = 0
+for item in classes_table.table:
+  class_item = classes_table.table.get(item)
 
-print(temporals_table)
+  # We check the absolute offset of the variables
+  for var_name in class_item.variables:
+    var_item = variables_table.table.get(f'{class_item.name}-{var_name}')
+    absolute_offset += var_item.size
+
+  for fun_name in class_item.functions:
+    fun_item = functions_table.table.get(f'{class_item.name}-{fun_name}')
+
+    if (fun_item.let_num == 0 and fun_item.num_params == 0):
+      continue
+
+    # We check the absolute offset of the functions params
+    for fun_var_name in fun_item.param_names:
+      key = f'{class_item.name}-{fun_name}-{fun_var_name}'
+      var_fun_item = variables_table.table.get(key)
+      
+      var_fun_item.setAbsoluteOffset(absolute_offset)
+      absolute_offset += var_fun_item.size
+
+    if (fun_item.let_num == 0):
+      continue
+
+    # We check the absolute offset of the lets params
+    for let_id in range(fun_item.let_num):
+      let_id += 1
+      key1 = f'{class_item.name}-{fun_name}-let-{let_id}'
+      key2 = f'{class_item.name}-{fun_name}-let,{let_id}'
+
+      # Because some lets for some reason have , instead of -
+      final_key = ''
+      let_fun = None
+
+      if (key1 in functions_table.table):
+        let_fun = functions_table.table.get(key1)
+
+      if (key2 in functions_table.table):
+        let_fun = functions_table.table.get(key2)
+
+        functions_table.table[key1] = let_fun # We correct the key
+
+      # Now we check for every let param
+      for let_param in let_fun.param_names:
+        let_param_item = variables_table.table.get(f'{key1}-{let_param}')
+
+        let_param_item.setAbsoluteOffset(absolute_offset)
+        absolute_offset += let_param_item.size
+
+print(variables_table)
+print(absolute_offset, class_table_size)
+
+# for variable in variables_table.table:
+#   print(variable)
 
 # for x in functions_table.table:
 #   print('>>>', functions_table.table[x])

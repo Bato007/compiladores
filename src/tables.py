@@ -153,12 +153,16 @@ class VariableObject(object):
 		self.init_value = init_value
 		self.size = 0
 		self.offset = 0
+		self.absoluteOffset = -1
 
 	def setError(self):
 		self.type = 'ERROR'
 
 	def setOffset(self, offset = 0):
 		self.offset = offset
+
+	def setAbsoluteOffset(self, absoluteOffset = 0):
+		self.absoluteOffset = absoluteOffset
 
 	def setSize(self, size = 0):
 		try:
@@ -240,6 +244,7 @@ class VariablesTable(object):
 			details += f'    value: {variable.init_value}\n'
 			details += f'    size: {variable.size}\n'
 			details += f'    offset: {variable.offset}\n'
+			details += f'    absoluteOffset: {variable.absoluteOffset}\n'
 		details += '}'
 		return details
 
