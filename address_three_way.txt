@@ -5,201 +5,201 @@ A
       GP[0] = num
    A
    A
-     	t1 = num1+num2
-      A-x = GP[365]
+     	GP[361] = num1+num2
+      A-x = GP[361]
       set_var
             PARAM A-set_var-x
-            GP[373] = CALL set_var
+            GP[417] = CALL set_var
    A
       A-x = ~num
       set_var
             PARAM A-set_var-x
-            GP[365] = CALL set_var
+            GP[361] = CALL set_var
    A
-     	t1 = num2<num1
-     	t2 = num1-num2
-      A-x = GP[373]
+     	GP[361] = num2<num1
+     	GP[417] = num1-num2
+      A-x = GP[417]
       set_var
             PARAM A-set_var-x
-            GP[397] = CALL set_var
-     	t4 = num2-num1
-      A-x = GP[345]
+            GP[289] = CALL set_var
+     	GP[325] = num2-num1
+      A-x = GP[325]
       set_var
             PARAM A-set_var-x
-            GP[425] = CALL set_var
+            GP[389] = CALL set_var
    A
-     	t1 = y<=num
-     	t2 = x*y
-      A-x = GP[373]
-     	t3 = y+1
-      A-y = GP[397]
+     	GP[361] = y<=num
+     	GP[417] = x*y
+      A-x = GP[417]
+     	GP[289] = y+1
+      A-y = GP[289]
       set_var
             PARAM A-set_var-x
-            GP[345] = CALL set_var
+            GP[325] = CALL set_var
 B
    B
-     	t1 = num*num
-      B-x = GP[365]
+     	GP[361] = num*num
+      B-x = GP[361]
       set_var
             PARAM A-set_var-x
-            GP[373] = CALL set_var
+            GP[417] = CALL set_var
 C
    C
       C-x = ~num
       set_var
             PARAM A-set_var-x
-            GP[365] = CALL set_var
+            GP[361] = CALL set_var
    C
-     	t1 = num*num
-     	t2 = t1*num
-      C-x = GP[373]
+     	GP[361] = num*num
+     	GP[417] = GP[361]*num
+      C-x = GP[417]
       set_var
             PARAM A-set_var-x
-            GP[397] = CALL set_var
+            GP[289] = CALL set_var
 D
    D
-     	t1 = x<0
+     	GP[361] = x<0
       method7
             PARAM D-method7-~x
-            GP[373] = CALL method7
-     	t3 = 0=x
-     	t5 = 1=x
-     	t7 = 2=x
-     	t9 = x-3
+            GP[417] = CALL method7
+     	GP[289] = 0=x
+     	GP[389] = 1=x
+     	GP[333] = 2=x
+     	GP[369] = x-3
       method7
-            PARAM GP[341]
-            GP[437] = CALL method7
+            PARAM GP[369]
+            GP[313] = CALL method7
 E
    E
-     	t1 = num/8
-      E-x = GP[365]
+     	GP[361] = num/8
+      E-x = GP[361]
       set_var
             PARAM A-set_var-x
-            GP[373] = CALL set_var
+            GP[417] = CALL set_var
 Main
       GP[0] = String
       GP[16] = A
       GP[76] = A
       GP[136] = true
    Main
-     	t1 = x<0
+     	GP[361] = x<0
       is_even
             PARAM Main-is_even-~x
-            GP[373] = CALL is_even
-     	t3 = 0=x
-     	t5 = 1=x
-     	t7 = x-2
+            GP[417] = CALL is_even
+     	GP[289] = 0=x
+     	GP[389] = 1=x
+     	GP[333] = x-2
       is_even
-            PARAM GP[377]
-            GP[401] = CALL is_even
+            PARAM GP[333]
+            GP[433] = CALL is_even
    Main
       GP[16] = (newA)
       set_var
             PARAM A-set_var-2
-            GP[365] = CALL set_var
+            GP[361] = CALL set_var
       value
-            GP[373] = CALL value
+            GP[417] = CALL value
       out_int
-            PARAM GP[373]
-            GP[397] = CALL out_int
+            PARAM GP[417]
+            GP[289] = CALL out_int
       value
-            GP[345] = CALL value
+            GP[325] = CALL value
       is_even
-            PARAM GP[345]
-            GP[425] = CALL is_even
+            PARAM GP[325]
+            GP[389] = CALL is_even
       out_string
             PARAM IO-out_string-" es par!\n"
-            GP[405] = CALL out_string
+            GP[317] = CALL out_string
       out_string
             PARAM IO-out_string-" es impar!\n"
-            GP[377] = CALL out_string
+            GP[333] = CALL out_string
       set_var
             PARAM A-set_var-3
-            GP[401] = CALL set_var
-      Main-a_var = GP[401]
+            GP[433] = CALL set_var
+      GP[76] = GP[433]
       value
-            GP[341] = CALL value
+            GP[369] = CALL value
       value
-            GP[437] = CALL value
+            GP[313] = CALL value
       method2
             PARAM A-method2-avar.value()
-            PARAM GP[437]
-            GP[421] = CALL method2
-      Main-avar = GP[421]
+            PARAM GP[313]
+            GP[429] = CALL method2
+      GP[16] = GP[429]
       value
-            GP[361] = CALL value
+            GP[297] = CALL value
       out_int
-            PARAM GP[361]
-            GP[289] = CALL out_int
+            PARAM GP[297]
+            GP[349] = CALL out_int
       out_string
             PARAM IO-out_string-"\n"
-            GP[393] = CALL out_string
+            GP[405] = CALL out_string
       value
-            GP[333] = CALL value
+            GP[337] = CALL value
       method6
-            PARAM GP[333]
-            GP[297] = CALL method6
-      Main-avar = GP[297]
+            PARAM GP[337]
+            GP[437] = CALL method6
+      GP[16] = GP[437]
       value
             GP[309] = CALL value
       out_int
             PARAM GP[309]
-            GP[429] = CALL out_int
+            GP[301] = CALL out_int
+      out_string
+            PARAM IO-out_string-"\n"
+            GP[413] = CALL out_string
+      set_var
+            PARAM A-set_var-5
+            GP[421] = CALL set_var
+      GP[76] = GP[421]
+      value
+            GP[381] = CALL value
+      value
+            GP[341] = CALL value
+      method4
+            PARAM A-method4-avar.value()
+            PARAM GP[341]
+            GP[409] = CALL method4
+      GP[16] = GP[409]
+      value
+            GP[365] = CALL value
+      out_int
+            PARAM GP[365]
+            GP[425] = CALL out_int
+      out_string
+            PARAM IO-out_string-"\n"
+            GP[393] = CALL out_string
+      set_var
+            PARAM A-set_var-5
+            GP[377] = CALL set_var
+      value
+            GP[353] = CALL value
+      method5
+            PARAM GP[353]
+            GP[321] = CALL method5
+      GP[16] = Main-main-(newC)@t29
+      value
+            GP[385] = CALL value
+      out_int
+            PARAM GP[385]
+            GP[397] = CALL out_int
+      out_string
+            PARAM IO-out_string-"\n"
+            GP[293] = CALL out_string
+      set_var
+            PARAM A-set_var-6
+            GP[401] = CALL set_var
+      value
+            GP[373] = CALL value
+      method5
+            PARAM GP[373]
+            GP[357] = CALL method5
+      GP[16] = Main-main-(newC)@t35
+      value
+            GP[305] = CALL value
+      out_int
+            PARAM GP[305]
+            GP[345] = CALL out_int
       out_string
             PARAM IO-out_string-"\n"
             GP[329] = CALL out_string
-      set_var
-            PARAM A-set_var-5
-            GP[321] = CALL set_var
-      Main-a_var = GP[321]
-      value
-            GP[353] = CALL value
-      value
-            GP[337] = CALL value
-      method4
-            PARAM A-method4-avar.value()
-            PARAM GP[337]
-            GP[369] = CALL method4
-      Main-avar = GP[369]
-      value
-            GP[349] = CALL value
-      out_int
-            PARAM GP[349]
-            GP[413] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[381] = CALL out_string
-      set_var
-            PARAM A-set_var-5
-            GP[417] = CALL set_var
-      value
-            GP[389] = CALL value
-      method5
-            PARAM GP[389]
-            GP[305] = CALL method5
-      GP[16] = Main-main-(newC)@t29
-      value
-            GP[357] = CALL value
-      out_int
-            PARAM GP[357]
-            GP[317] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[325] = CALL out_string
-      set_var
-            PARAM A-set_var-6
-            GP[433] = CALL set_var
-      value
-            GP[385] = CALL value
-      method5
-            PARAM GP[385]
-            GP[313] = CALL method5
-      GP[16] = Main-main-(newC)@t35
-      value
-            GP[301] = CALL value
-      out_int
-            PARAM GP[301]
-            GP[293] = CALL out_int
-      out_string
-            PARAM IO-out_string-"\n"
-            GP[409] = CALL out_string

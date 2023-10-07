@@ -5,7 +5,7 @@ A
       A-var = num
    A
    A
-     	t1 = num1+num2
+     	A-method2-t1 = num1+num2
       A-x = A-method2-t1
       set_var
             PARAM A-set_var-x
@@ -16,29 +16,29 @@ A
             PARAM A-set_var-x
             A-method3-t1 = CALL set_var
    A
-     	t1 = num2<num1
-     	t2 = num1-num2
+     	A-method4-t1 = num2<num1
+     	A-method4-t2 = num1-num2
       A-x = A-method4-t2
       set_var
             PARAM A-set_var-x
             A-method4-t3 = CALL set_var
-     	t4 = num2-num1
+     	A-method4-t4 = num2-num1
       A-x = A-method4-t4
       set_var
             PARAM A-set_var-x
             A-method4-t5 = CALL set_var
    A
-     	t1 = y<=num
-     	t2 = x*y
+     	A-method5-t1 = y<=num
+     	A-method5-t2 = x*y
       A-x = A-method5-t2
-     	t3 = y+1
+     	A-method5-t3 = y+1
       A-y = A-method5-t3
       set_var
             PARAM A-set_var-x
             A-method5-t4 = CALL set_var
 B
    B
-     	t1 = num*num
+     	B-method5-t1 = num*num
       B-x = B-method5-t1
       set_var
             PARAM A-set_var-x
@@ -50,28 +50,28 @@ C
             PARAM A-set_var-x
             C-method6-t1 = CALL set_var
    C
-     	t1 = num*num
-     	t2 = t1*num
+     	C-method5-t1 = num*num
+     	C-method5-t2 = C-method5-t1*num
       C-x = C-method5-t2
       set_var
             PARAM A-set_var-x
             C-method5-t3 = CALL set_var
 D
    D
-     	t1 = x<0
+     	D-method7-t1 = x<0
       method7
             PARAM D-method7-~x
             D-method7-t2 = CALL method7
-     	t3 = 0=x
-     	t5 = 1=x
-     	t7 = 2=x
-     	t9 = x-3
+     	D-method7-t3 = 0=x
+     	D-method7-t5 = 1=x
+     	D-method7-t7 = 2=x
+     	D-method7-t9 = x-3
       method7
             PARAM D-method7-t9
             D-method7-t10 = CALL method7
 E
    E
-     	t1 = num/8
+     	E-method6-t1 = num/8
       E-x = E-method6-t1
       set_var
             PARAM A-set_var-x
@@ -82,13 +82,13 @@ Main
       Main-a_var = A
       Main-flag = true
    Main
-     	t1 = x<0
+     	Main-is_even-t1 = x<0
       is_even
             PARAM Main-is_even-~x
             Main-is_even-t2 = CALL is_even
-     	t3 = 0=x
-     	t5 = 1=x
-     	t7 = x-2
+     	Main-is_even-t3 = 0=x
+     	Main-is_even-t5 = 1=x
+     	Main-is_even-t7 = x-2
       is_even
             PARAM Main-is_even-t7
             Main-is_even-t8 = CALL is_even

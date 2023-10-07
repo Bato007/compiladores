@@ -51,7 +51,7 @@ C
             t1 = CALL set_var
    C
      	t1 = num*num
-     	t2 = t1*num
+     	t2 = C-method5-t1*num
 	x = t2
       set_var
             PARAM x

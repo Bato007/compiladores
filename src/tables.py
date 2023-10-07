@@ -16,10 +16,10 @@ class LoopObject(object):
 	def start(self, is_if=False, is_while=False):
 		content = ""
 		if (is_if):
-			content += (f'	if t{self.if_condition} goto L{self._id}')
+			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}')
 			content += (f'	goto L{self._id + 1}')
 		elif (is_while): # while
-			content += (f'	if t{self.if_condition} goto L{self._id}')
+			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}')
 			content += (f'	goto END_L{self._id - 1}')
 		content += (f'	L{self._id}')
 
@@ -37,10 +37,10 @@ class LoopObject(object):
 
 	def __str__(self):
 		if (self.goto != None):
-			details += f'	if t{self.if_condition} goto L{self.goto}'
+			details += f'	if {self.context}-t{self.if_condition} goto L{self.goto}'
 		else: # while
 			details = f'	END_L{self._id}\n'
-			details += f'	if t{self.if_condition} goto L{self._id}'
+			details += f'	if {self.context}-t{self.if_condition} goto L{self._id}'
 		return details
 	
 class TemporalObject(object):
@@ -68,7 +68,7 @@ class TemporalObject(object):
 			self.size = size
 
 	def setRule(self, rule, content, _id):
-		name = f't{_id}'
+		name = f'{self.context}-t{_id}'
 		if (content != None):
 			intermediaryRule = rule.replace(content, name)
 			# print("			rule", rule)
@@ -83,6 +83,9 @@ class TemporalObject(object):
 	
 	def three_way_print(self, tab="     	"):
 		return (f'{tab}t{self._id} = {self.intermediaryRule}')
+	
+	def three_way_print_context(self, context, tab="     	"):
+		return (f'{tab}{context}-t{self._id} = {self.intermediaryRule}')
 
 	def __str__(self):
 		details = '{\n'

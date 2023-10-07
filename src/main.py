@@ -604,6 +604,10 @@ class PostOrderVisitor(YalpVisitor):
         ):
           new_return_temporary = return_value_temporary.pop()
           new_return_temporary.setReturnValue(child_types[-1])
+          
+          intermittent_address_three_way_file.add_line_to_txt(new_return_temporary.three_way_print())
+          intermittent_address_three_way_file.add_line_to_txt(f'        return {self.temporal_context}-t{new_return_temporary._id}')
+
           original_three_way_file.add_line_to_txt(new_return_temporary.three_way_print())
           original_three_way_file.add_line_to_txt(f'        return t{new_return_temporary._id}')
 
@@ -680,12 +684,12 @@ class PostOrderVisitor(YalpVisitor):
         for temp in self.functionsTemp:
           temp_content = temporals_table.get(self.temporal_context, temp)
           if temp_content in tree.getText().split("<-")[-1]:
-            intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = t{temp}')
+            intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{temp}')
             original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{temp}')
             temporal_found = True
             break
         if (not temporal_found and self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
-          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = t{self.lastTemp._id}')
+          intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
         elif (not temporal_found):
           intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {tree.getChild(-1).getText()}')
@@ -823,7 +827,7 @@ class PostOrderVisitor(YalpVisitor):
                 )
 
 
-        intermittent_address_three_way_file.add_line_to_txt(added_temporal.three_way_print())
+        intermittent_address_three_way_file.add_line_to_txt(added_temporal.three_way_print_context(context=self.temporal_context))
         original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
         
         self.lastTemp = added_temporal
@@ -951,6 +955,7 @@ for temp_key in temporals_table.table:
   temp_name = f't{temporal._id}'
   temporal.setOffset(temporal_dic[temp_name])
 
+print(temporals_table)
 # Gets the absolute offsets
 absolute_offset = 0
 for item in classes_table.table:
@@ -1015,11 +1020,11 @@ for line in Lines:
   for var in variables_table.table:
     if (var in line):
       var_ = var.split("-")
-      new_line = line.replace(var, f'GP[{variables_table.get(var_[1], var_[0]).offset}]')
+      new_line = new_line.replace(var, f'GP[{variables_table.get(var_[1], var_[0]).offset}]')
   
-  for temp in temporals_table.table:
+  for temp in sorted(temporals_table.table, reverse=True):
     if (temp in line):
-      new_line = line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
+      new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
 
   address_three_way_file.add_line_to_txt(new_line.rstrip())
 # for variable in variables_table.table:
