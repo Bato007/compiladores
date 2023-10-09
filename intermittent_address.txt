@@ -2,21 +2,21 @@ Factorial
       Factorial-var = 0
    Factorial
      	Factorial-factorial-t1 = n=0
-      Factorial-f = 0
+      Factorial-factorial-let-1-f = 0
      	Factorial-factorial-t2 = n=1
-      Factorial-f = 1
+      Factorial-factorial-let-1-f = 1
      	Factorial-factorial-t3 = n-1
       factorial
             PARAM Factorial-factorial-t3
             Factorial-factorial-t4 = CALL factorial
      	Factorial-factorial-t5 = n*Factorial-factorial-t4
-      Factorial-f = Factorial-factorial-t5
+      Factorial-factorial-let-1-f = Factorial-factorial-t5
 Fibonacci
    Fibonacci
      	Fibonacci-fibonacci-t1 = n=1
-      Fibonacci-f = 1
+      Fibonacci-fibonacci-let-1-f = 1
      	Fibonacci-fibonacci-t2 = n=2
-      Fibonacci-f = 1
+      Fibonacci-fibonacci-let-1-f = 1
      	Fibonacci-fibonacci-t3 = n-1
       fibonacci
             PARAM Fibonacci-fibonacci-t3
@@ -26,7 +26,7 @@ Fibonacci
             PARAM Fibonacci-fibonacci-t5
             Fibonacci-fibonacci-t6 = CALL fibonacci
      	Fibonacci-fibonacci-t7 = Fibonacci-fibonacci-t4+Fibonacci-fibonacci-t6
-      Fibonacci-f = Fibonacci-fibonacci-t7
+      Fibonacci-fibonacci-let-1-f = Fibonacci-fibonacci-t7
 Main
       Main-n = 10
       Main-facto = Factorial
