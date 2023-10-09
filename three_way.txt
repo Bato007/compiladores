@@ -1,42 +1,35 @@
-Factorial
-	var = 0
-   Factorial
-     	t1 = n=0
-  f = 0
-     	t2 = n=1
-  f = 1
-     	t3 = n-1
-      factorial
-            PARAM t3
-            t4 = CALL factorial
-     	t5 = n*Factorial-factorial-t4
-	f = t5
-Fibonacci
-   Fibonacci
-     	t1 = n=1
-  f = 1
-     	t2 = n=2
-  f = 1
-     	t3 = n-1
-      fibonacci
-            PARAM t3
-            t4 = CALL fibonacci
-     	t5 = n-2
-      fibonacci
-            PARAM t5
-            t6 = CALL fibonacci
-     	t7 = Fibonacci-fibonacci-t4+Fibonacci-fibonacci-t6
-	f = t7
 Main
-	n = 10
-	facto = Factorial
-	fibo = Fibonacci
+      out_string
+            PARAM "2 is trivially prime.\n"
+            t1 = CALL out_string
+	out = Main-substr-t1
+	testee = out
+	divisor = Int
+	stop = 500
    Main
-  facto = newFactorial
-  fibo = newFibonacci
-      fibonacci
-            PARAM n
-            t1 = CALL fibonacci
+     	t1 = true
+     	t2 = Main-testee+1
+  testee = testee+1
+  divisor = 2
+     	t3 = Main-divisor*Main-divisor
+     	t4 = Main-testee<divisor*divisor
+     	t5 = false
+     	t6 = Main-testee/Main-divisor
+     	t7 = Main-divisor*(testee/divisor)
+     	t8 = Main-testee-divisor*(testee/divisor)
+     	t9 = testee-divisor*(testee/divisor)=0
+     	t10 = false
+     	t11 = Main-divisor+1
+  divisor = divisor+1
+     	t12 = Main-divisor*Main-divisor
+     	t13 = Main-testee<divisor*divisor
+  out = testee
       out_int
-            PARAM t1
-            t2 = CALL out_int
+            PARAM Main-out
+            t14 = CALL out_int
+      out_string
+            PARAM " is prime.\n"
+            t15 = CALL out_string
+     	t16 = Main-stop<=Main-testee
+      abort
+            t17 = CALL abort

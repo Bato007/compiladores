@@ -1,42 +1,32 @@
-Factorial
-      GP[0] = 0
-   Factorial
-     	GP[252] = n=0
-      GP[8] = 0
-     	GP[244] = n=1
-      GP[8] = 1
-     	GP[264] = n-1
-      factorial
-            PARAM GP[264]
-            GP[248] = CALL factorial
-     	GP[240] = n*GP[248]
-      GP[8] = GP[240]
-Fibonacci
-   Fibonacci
-     	GP[252] = n=1
-      GP[8] = 1
-     	GP[244] = n=2
-      GP[8] = 1
-     	GP[264] = n-1
-      fibonacci
-            PARAM GP[264]
-            GP[248] = CALL fibonacci
-     	GP[240] = n-2
-      fibonacci
-            PARAM GP[240]
-            GP[260] = CALL fibonacci
-     	GP[256] = GP[248]+GP[260]
-      GP[8] = GP[256]
 Main
-      GP[0] = 10
-      GP[4] = Factorial
-      GP[28] = Fibonacci
+      out_string
+            PARAM "2 is trivially prime.\n"
+            GP[212] = CALL out_string
+      GP[0] = GP[212]
+      GP[4] = out
+      GP[8] = Int
+      GP[12] = 500
    Main
-      GP[4] = newFactorial
-      GP[28] = newFibonacci
-      fibonacci
-            PARAM GP[4]
-            GP[252] = CALL fibonacci
+     	GP[172] = GP[4]+1
+      GP[4] = testee+1
+      GP[8] = 2
+     	GP[200] = GP[8]*GP[8]
+     	GP[224] = GP[4]<divisor*divisor
+     	GP[204] = GP[4]/GP[8]
+     	GP[184] = GP[8]*(testee/divisor)
+     	GP[188] = GP[4]-divisor*(testee/divisor)
+     	GP[180] = testee-divisor*(testee/divisor)=0
+     	GP[220] = GP[8]+1
+      GP[8] = divisor+1
+     	GP[164] = GP[8]*GP[8]
+     	GP[208] = GP[4]<divisor*divisor
+      GP[0] = testee
       out_int
-            PARAM GP[252]
-            GP[244] = CALL out_int
+            PARAM GP[0]
+            GP[176] = CALL out_int
+      out_string
+            PARAM " is prime.\n"
+            GP[196] = CALL out_string
+     	GP[216] = GP[12]<=GP[4]
+      abort
+            GP[192] = CALL abort

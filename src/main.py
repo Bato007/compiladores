@@ -452,6 +452,30 @@ class PostOrderVisitor(YalpVisitor):
     intermittent_address_three_way_file.add_line_to_txt(f'      {fun_name}')
     original_three_way_file.add_line_to_txt(f'      {fun_name}')
     
+    
+    def get_correct_context(var_name):
+        let_context = None
+        for possible_let in reversed(range(self.let_id + 1)) : 
+          key = f'{self.class_context}-{self.fun_context}-let-{possible_let + 1}-{var_name}'
+          try:
+            variables_table.table[key]
+            let_context = key
+            break
+          except:
+            pass
+
+        function_context = variables_table.get(var_name, self.class_context+"-"+self.fun_context)
+        class_context = variables_table.get(var_name, self.class_context)
+
+        if (let_context != None):
+          var_name = let_context
+        elif (function_context != None):
+          var_name = f'{self.class_context}-{self.fun_context}-{var_name}'
+        elif (class_context != None):
+          var_name = f'{self.class_context}-{var_name}'
+        
+        return var_name
+
     for param in children:
       if (not param == ","):
         inner_params.append(param)
@@ -459,8 +483,8 @@ class PostOrderVisitor(YalpVisitor):
           original_three_way_file.add_line_to_txt(f'            PARAM t{self.lastTemp._id}')
           intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {self.temporal_context}-t{self.lastTemp._id}')
         else:
-          intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {functions_table.get(fun_name, class_context).context}-{fun_name}-{param}')
-          original_three_way_file.add_line_to_txt(f'            PARAM {param}')
+          intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
+          original_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
 
     
     self.temporal_context = f'{self.class_context}-{self.fun_context}'
@@ -775,7 +799,34 @@ class PostOrderVisitor(YalpVisitor):
         node_type == YalpParser.ArithmeticalContext
         or node_type == YalpParser.LogicalContext
       ):
+        def get_correct_context(var_name):
+            let_context = None
+            for possible_let in reversed(range(self.let_id + 1)) : 
+              key = f'{self.class_context}-{self.fun_context}-let-{possible_let + 1}-{var_name}'
+              try:
+                variables_table.table[key]
+                let_context = key
+                break
+              except:
+                pass
+
+            function_context = variables_table.get(var_name, self.class_context+"-"+self.fun_context)
+            class_context = variables_table.get(var_name, self.class_context)
+
+            if (let_context != None):
+              var_name = let_context
+            elif (function_context != None):
+              var_name = f'{self.class_context}-{self.fun_context}-{var_name}'
+            elif (class_context != None):
+              var_name = f'{self.class_context}-{var_name}'
+            
+            return var_name
+    
         leftOperand, _, rightOperand =  child_types
+        leftOperandText, _Text, rightOperandText = original_children
+        leftOperandText = get_correct_context(leftOperandText)
+        rightOperandText = get_correct_context(rightOperandText)
+
         if isinstance(rightOperand, list):
           rightOperand, temp = rightOperand
 
@@ -803,24 +854,25 @@ class PostOrderVisitor(YalpVisitor):
           current_id = self.lastTemp._id + 1
           temporals_set.add(f't{current_id}')
 
-        added_temporal = temporals_table.add(current_id, self.temporal_context, tree.getText())
-
+        labeled_tree = f'{leftOperandText}{_Text}{rightOperandText}'
+        added_temporal = temporals_table.add(current_id, self.temporal_context, labeled_tree)
+        # print(original_children, labeled_tree)
         if (self.lastTemp != None):
           added_temporal.setRule(
-            rule=tree.getText(),
+            rule=labeled_tree,
             content=self.lastTemp.originalRule,
             _id=self.lastTemp._id
           )
         # Checking if is function call
         for tempId in self.functionsTemp:
           inner_value = temporals_table.get(temporal_context=self.temporal_context, _id=tempId)
-          if (inner_value == tree.getChild(0).getText()):
+          if (inner_value == leftOperandText):
                 added_temporal.setRule(
                   rule=added_temporal.intermediaryRule,
                   content=inner_value,
                   _id=tempId
                 )
-          elif (inner_value == tree.getChild(2).getText()):
+          elif (inner_value == rightOperandText):
                 added_temporal.setRule(
                   rule=added_temporal.intermediaryRule,
                   content=inner_value,

@@ -1,42 +1,32 @@
-Factorial
-      Factorial-var = 0
-   Factorial
-     	Factorial-factorial-t1 = n=0
-      Factorial-factorial-let-1-f = 0
-     	Factorial-factorial-t2 = n=1
-      Factorial-factorial-let-1-f = 1
-     	Factorial-factorial-t3 = n-1
-      factorial
-            PARAM Factorial-factorial-t3
-            Factorial-factorial-t4 = CALL factorial
-     	Factorial-factorial-t5 = n*Factorial-factorial-t4
-      Factorial-factorial-let-1-f = Factorial-factorial-t5
-Fibonacci
-   Fibonacci
-     	Fibonacci-fibonacci-t1 = n=1
-      Fibonacci-fibonacci-let-1-f = 1
-     	Fibonacci-fibonacci-t2 = n=2
-      Fibonacci-fibonacci-let-1-f = 1
-     	Fibonacci-fibonacci-t3 = n-1
-      fibonacci
-            PARAM Fibonacci-fibonacci-t3
-            Fibonacci-fibonacci-t4 = CALL fibonacci
-     	Fibonacci-fibonacci-t5 = n-2
-      fibonacci
-            PARAM Fibonacci-fibonacci-t5
-            Fibonacci-fibonacci-t6 = CALL fibonacci
-     	Fibonacci-fibonacci-t7 = Fibonacci-fibonacci-t4+Fibonacci-fibonacci-t6
-      Fibonacci-fibonacci-let-1-f = Fibonacci-fibonacci-t7
 Main
-      Main-n = 10
-      Main-facto = Factorial
-      Main-fibo = Fibonacci
+      out_string
+            PARAM "2 is trivially prime.\n"
+            Main-substr-t1 = CALL out_string
+      Main-out = Main-substr-t1
+      Main-testee = out
+      Main-divisor = Int
+      Main-stop = 500
    Main
-      Main-facto = newFactorial
-      Main-fibo = newFibonacci
-      fibonacci
-            PARAM Fibonacci-fibonacci-n
-            Main-main-t1 = CALL fibonacci
+     	Main-main-t2 = Main-testee+1
+      Main-testee = testee+1
+      Main-divisor = 2
+     	Main-main-t3 = Main-divisor*Main-divisor
+     	Main-main-t4 = Main-testee<divisor*divisor
+     	Main-main-t6 = Main-testee/Main-divisor
+     	Main-main-t7 = Main-divisor*(testee/divisor)
+     	Main-main-t8 = Main-testee-divisor*(testee/divisor)
+     	Main-main-t9 = testee-divisor*(testee/divisor)=0
+     	Main-main-t11 = Main-divisor+1
+      Main-divisor = divisor+1
+     	Main-main-t12 = Main-divisor*Main-divisor
+     	Main-main-t13 = Main-testee<divisor*divisor
+      Main-out = testee
       out_int
-            PARAM Main-main-t1
-            Main-main-t2 = CALL out_int
+            PARAM Main-out
+            Main-main-t14 = CALL out_int
+      out_string
+            PARAM " is prime.\n"
+            Main-main-t15 = CALL out_string
+     	Main-main-t16 = Main-stop<=Main-testee
+      abort
+            Main-main-t17 = CALL abort
