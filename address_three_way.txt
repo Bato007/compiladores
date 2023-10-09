@@ -1,42 +1,42 @@
 Factorial
       GP[0] = 0
    Factorial
-     	GP[104] = n=0
+     	GP[256] = n=0
       Factorial-f = 0
-     	GP[108] = n=1
+     	GP[264] = n=1
       Factorial-f = 1
-     	GP[112] = n-1
+     	GP[252] = n-1
       factorial
-            PARAM GP[112]
-            GP[92] = CALL factorial
-     	GP[88] = n*GP[92]
-      Factorial-f = GP[88]
+            PARAM GP[252]
+            GP[248] = CALL factorial
+     	GP[244] = n*GP[248]
+      Factorial-f = GP[244]
 Fibonacci
    Fibonacci
-     	GP[104] = n=1
+     	GP[256] = n=1
       Fibonacci-f = 1
-     	GP[108] = n=2
+     	GP[264] = n=2
       Fibonacci-f = 1
-     	GP[112] = n-1
+     	GP[252] = n-1
       fibonacci
-            PARAM GP[112]
-            GP[92] = CALL fibonacci
-     	GP[88] = n-2
+            PARAM GP[252]
+            GP[248] = CALL fibonacci
+     	GP[244] = n-2
       fibonacci
-            PARAM GP[88]
-            GP[96] = CALL fibonacci
-     	GP[100] = GP[92]+GP[96]
-      Fibonacci-f = GP[100]
+            PARAM GP[244]
+            GP[260] = CALL fibonacci
+     	GP[240] = GP[248]+GP[260]
+      Fibonacci-f = GP[240]
 Main
       GP[0] = 10
       GP[4] = Factorial
-      GP[16] = Fibonacci
+      GP[28] = Fibonacci
    Main
       GP[4] = newFactorial
-      GP[16] = newFibonacci
+      GP[28] = newFibonacci
       fibonacci
             PARAM Fibonacci-fibonacci-n
-            GP[104] = CALL fibonacci
+            GP[256] = CALL fibonacci
       out_int
-            PARAM GP[104]
-            GP[108] = CALL out_int
+            PARAM GP[256]
+            GP[264] = CALL out_int

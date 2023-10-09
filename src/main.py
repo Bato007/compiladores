@@ -204,7 +204,7 @@ class TypeCollectorVisitor(YalpVisitor):
     try:
       size = classes_table.get(var_type).getSize()
     except: pass
-    
+
     var.setSize(size)
     var.setOffset(function.getSize())
 
@@ -955,7 +955,6 @@ for temp_key in temporals_table.table:
   temp_name = f't{temporal._id}'
   temporal.setOffset(temporal_dic[temp_name])
 
-print(temporals_table)
 # Gets the absolute offsets
 absolute_offset = 0
 for item in classes_table.table:
@@ -969,6 +968,9 @@ for item in classes_table.table:
 
   for fun_name in class_item.functions:
     fun_item = functions_table.table.get(f'{class_item.name}-{fun_name}')
+
+    fun_item.set_absolute_return_offset(absolute_offset)
+    absolute_offset += fun_item.return_size
 
     if (fun_item.let_num == 0 and fun_item.num_params == 0):
       continue
@@ -1001,6 +1003,9 @@ for item in classes_table.table:
         let_fun = functions_table.table.get(key2)
 
         functions_table.table[key1] = let_fun # We correct the key
+      
+      let_fun.set_absolute_return_offset(absolute_offset)
+      absolute_offset += let_fun.return_size
 
       # Now we check for every let param
       for let_param in let_fun.param_names:
@@ -1013,7 +1018,7 @@ for item in classes_table.table:
 intermittent_address_three_way_file.close_txt_file()
 file1 = open('intermittent_address.txt', 'r')
 Lines = file1.readlines()
- 
+
 # Strips the newline character
 for line in Lines:
   new_line = line
@@ -1029,8 +1034,6 @@ for line in Lines:
         new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
 
   address_three_way_file.add_line_to_txt(new_line.rstrip())
-# for variable in variables_table.table:
-#   print(variable)
 
-# for x in functions_table.table:
-#   print('>>>', functions_table.table[x])
+print(functions_table)
+print(absolute_offset, class_table_size)

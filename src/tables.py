@@ -154,6 +154,7 @@ class TemporalsTable(object):
 			details += f'    offset: {variable.offset}\n'
 		details += '}'
 		return details
+
 class VariableObject(object):
 	def __init__(self, name, type, context, init_value=None):
 		self.name = name
@@ -258,6 +259,17 @@ class VariablesTable(object):
 		return details
 
 class FunctionObject(object):
+
+	def getReturnSize(self, return_type):
+		if (return_type == 'String'):
+			return BASE_SIZES['String']
+		elif (return_type == 'Bool'):
+			return BASE_SIZES['Bool']
+		elif (return_type == 'Int'):
+			return BASE_SIZES['Int']
+		else:
+			return 8
+
 	def __init__(
 		self,
 		name,
@@ -272,9 +284,13 @@ class FunctionObject(object):
 		self.return_type = return_type
 		self.param_types = []
 		self.param_names = []
+
+		self.return_size = self.getReturnSize(return_type)
+		self.absolute_return_offset = 0
+
 		self.let_num = 0
-		self.size = 0
-		self.current_offset = 0
+		self.size = self.getReturnSize(return_type)
+		self.current_offset = self.getReturnSize(return_type)
 
 	def getSize(self):
 		return self.size
@@ -296,6 +312,9 @@ class FunctionObject(object):
 	def set_return_type(self, return_type):
 		self.return_type = return_type
 
+	def set_absolute_return_offset(self, offset):
+		self.absolute_return_offset = offset
+
 	def set_is_inherited(self):
 		self.is_inherited = True
 
@@ -309,6 +328,8 @@ class FunctionObject(object):
 		details += f'  param_names: {self.param_names}\n'
 		details += f'  is_inherited: {self.is_inherited}\n'
 		details += f'  size: {self.size}\n'
+		details += f'  return_size: {self.return_size}\n'
+		details += f'  absolute_return_offset: {self.absolute_return_offset}\n'
 		details += f'  let_num: {self.let_num}\n'
 		details += f'  current_offset: {self.current_offset}\n'
 		details += '}'
@@ -394,7 +415,27 @@ class FunctionsTable(object):
 			self.table[key] = current_funct
 
 		return True
-	
+
+	def __str__(self):
+		details = '{\n'
+		for key in self.table:
+			fun_obj = self.table[key]
+			details += f'  {key} : ' + '{\n'
+			details += f'    name: {fun_obj.name}\n'
+			details += f'    context: {fun_obj.context}\n'
+			details += f'    return_type: {fun_obj.return_type}\n'
+			details += f'    num_params: {fun_obj.num_params}\n'
+			details += f'    param_types: {fun_obj.param_types}\n'
+			details += f'    param_names: {fun_obj.param_names}\n'
+			details += f'    is_inherited: {fun_obj.is_inherited}\n'
+			details += f'    size: {fun_obj.size}\n'
+			details += f'    return_size: {fun_obj.return_size}\n'
+			details += f'    absolute_return_offset: {fun_obj.absolute_return_offset}\n'
+			details += f'    let_num: {fun_obj.let_num}\n'
+			details += f'    current_offset: {fun_obj.current_offset}\n'
+		details += '}'
+		return details
+
 class ClassObject(object):
 	def __init__(self, name, parent='Object') -> None:
 		self.name = name
