@@ -44,13 +44,14 @@ class LoopObject(object):
 		return details
 	
 class TemporalObject(object):
-	def __init__(self, _id, context, originalRule):
+	def __init__(self, _id, context, originalRule, unlabeledRule):
 		self._id = _id
 		self.context = context
 		self.size = 0
 		self.offset = 0
 		self.originalRule = originalRule
 		self.intermediaryRule = originalRule
+		self.unlabeledRule = unlabeledRule
 
 	def setError(self):
 		self.type = 'ERROR'
@@ -95,6 +96,7 @@ class TemporalObject(object):
 		details += f'  offset: {self.offset}\n'
 		details += f'  intermediaryRule: {self.intermediaryRule}\n'
 		details += f'  originalRule: {self.originalRule}\n'
+		details += f'  unlabeledRule: {self.unlabeledRule}\n'
 		details += '}'
 		return details
 
@@ -107,6 +109,7 @@ class TemporalsTable(object):
 		_id,
 		context,
 		originalRule,
+		unlabeledRule=None
 	):
 		key = f'{context}-t{_id}'
 		if key in self.table.keys():
@@ -115,7 +118,8 @@ class TemporalsTable(object):
 		temporal = TemporalObject(
 			_id,
 			context,
-			originalRule
+			originalRule,
+			unlabeledRule
 		)
 
 		self.table[key] = temporal

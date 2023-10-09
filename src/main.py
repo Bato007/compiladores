@@ -861,12 +861,13 @@ class PostOrderVisitor(YalpVisitor):
           temporals_set.add(f't{current_id}')
 
         labeled_tree = f'{leftOperandText}{_Text}{rightOperandText}'
-        added_temporal = temporals_table.add(current_id, self.temporal_context, labeled_tree)
-        # print(original_children, labeled_tree)
+        added_temporal = temporals_table.add(current_id, self.temporal_context, labeled_tree,
+                                             unlabeledRule=f'{"".join(original_children)}')
+
         if (self.lastTemp != None):
           added_temporal.setRule(
             rule=labeled_tree,
-            content=self.lastTemp.originalRule,
+            content=self.lastTemp.unlabeledRule,
             _id=self.lastTemp._id
           )
         # Checking if is function call
