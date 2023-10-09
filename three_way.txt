@@ -1,35 +1,210 @@
+A
+	var = 0
+   A
+   A
+  var = num
+   A
+   A
+     	t1 = A-method2-num1+A-method2-num2
+  x = num1+num2
+      set_var
+            PARAM A-method2-let-1-x
+            t2 = CALL set_var
+   A
+  x = ~num
+      set_var
+            PARAM A-method3-let-1-x
+            t1 = CALL set_var
+   A
+     	t1 = A-method4-num2<A-method4-num1
+     	t2 = A-method4-num1-A-method4-num2
+  x = num1-num2
+      set_var
+            PARAM A-method4-let-2-x
+            t3 = CALL set_var
+     	t4 = A-method4-num2-A-method4-num1
+	x = num2-num1
+      set_var
+            PARAM A-method4-let-2-x
+            t5 = CALL set_var
+   A
+     	t1 = A-method5-let-2-y<=A-method5-num
+     	t2 = A-method5-let-1-x*A-method5-let-2-y
+  x = x*y
+     	t3 = A-method5-let-2-y+1
+  y = y+1
+      set_var
+            PARAM A-method5-let-1-x
+            t4 = CALL set_var
+B
+   B
+     	t1 = B-method5-num*B-method5-num
+  x = num*num
+      set_var
+            PARAM B-method5-let-1-x
+            t2 = CALL set_var
+C
+   C
+  x = ~num
+      set_var
+            PARAM C-method6-let-1-x
+            t1 = CALL set_var
+   C
+     	t1 = C-method5-num*C-method5-num
+     	t2 = num*num*C-method5-num
+  x = num*num*num
+      set_var
+            PARAM C-method5-let-1-x
+            t3 = CALL set_var
+D
+   D
+     	t1 = D-method7-let-1-x<0
+      method7
+            PARAM ~D-method7-let-1-x
+            t2 = CALL method7
+     	t3 = 0=D-method7-let-1-x
+     	t4 = true
+     	t5 = 1=D-method7-let-1-x
+     	t6 = false
+     	t7 = 2=D-method7-let-1-x
+     	t8 = false
+     	t9 = D-method7-let-1-x-3
+      method7
+            PARAM x-3
+            t10 = CALL method7
+E
+   E
+     	t1 = E-method6-num/8
+  x = num/8
+      set_var
+            PARAM E-method6-let-1-x
+            t2 = CALL set_var
 Main
-      out_string
-            PARAM "2 is trivially prime.\n"
-            t1 = CALL out_string
-	out = Main-substr-t1
-	testee = out
-	divisor = Int
-	stop = 500
+	char = String
+	avar = A
+	a_var = A
+	flag = true
    Main
-     	t1 = true
-     	t2 = Main-testee+1
-  testee = testee+1
-  divisor = 2
-     	t3 = Main-divisor*Main-divisor
-     	t4 = Main-testee<divisor*divisor
-     	t5 = false
-     	t6 = Main-testee/Main-divisor
-     	t7 = Main-divisor*(testee/divisor)
-     	t8 = Main-testee-divisor*(testee/divisor)
-     	t9 = testee-divisor*(testee/divisor)=0
-     	t10 = false
-     	t11 = Main-divisor+1
-  divisor = divisor+1
-     	t12 = Main-divisor*Main-divisor
-     	t13 = Main-testee<divisor*divisor
-  out = testee
+     	t1 = Main-is_even-let-1-x<0
+      is_even
+            PARAM ~Main-is_even-let-1-x
+            t2 = CALL is_even
+     	t3 = 0=Main-is_even-let-1-x
+     	t4 = true
+     	t5 = 1=Main-is_even-let-1-x
+     	t6 = false
+     	t7 = Main-is_even-let-1-x-2
+      is_even
+            PARAM x-2
+            t8 = CALL is_even
+   Main
+  avar = (newA)
+      set_var
+            PARAM 2
+            t1 = CALL set_var
+      value
+            t2 = CALL value
       out_int
-            PARAM Main-out
-            t14 = CALL out_int
+            PARAM t2
+            t3 = CALL out_int
+      value
+            t4 = CALL value
+      is_even
+            PARAM t4
+            t5 = CALL is_even
       out_string
-            PARAM " is prime.\n"
-            t15 = CALL out_string
-     	t16 = Main-stop<=Main-testee
-      abort
-            t17 = CALL abort
+            PARAM " es par!\n"
+            t6 = CALL out_string
+      out_string
+            PARAM " es impar!\n"
+            t7 = CALL out_string
+      set_var
+            PARAM 3
+            t8 = CALL set_var
+	a_var = t8
+      value
+            t9 = CALL value
+      value
+            t10 = CALL value
+      method2
+            PARAM avar.value()
+            PARAM t10
+            t11 = CALL method2
+	avar = t11
+      value
+            t12 = CALL value
+      out_int
+            PARAM t12
+            t13 = CALL out_int
+      out_string
+            PARAM "\n"
+            t14 = CALL out_string
+      value
+            t15 = CALL value
+      method6
+            PARAM t15
+            t16 = CALL method6
+	avar = t16
+      value
+            t17 = CALL value
+      out_int
+            PARAM t17
+            t18 = CALL out_int
+      out_string
+            PARAM "\n"
+            t19 = CALL out_string
+      set_var
+            PARAM 5
+            t20 = CALL set_var
+	a_var = t20
+      value
+            t21 = CALL value
+      value
+            t22 = CALL value
+      method4
+            PARAM avar.value()
+            PARAM t22
+            t23 = CALL method4
+	avar = t23
+      value
+            t24 = CALL value
+      out_int
+            PARAM t24
+            t25 = CALL out_int
+      out_string
+            PARAM "\n"
+            t26 = CALL out_string
+      set_var
+            PARAM 5
+            t27 = CALL set_var
+      value
+            t28 = CALL value
+      method5
+            PARAM t28
+            t29 = CALL method5
+	avar = (newC)@t29
+      value
+            t30 = CALL value
+      out_int
+            PARAM t30
+            t31 = CALL out_int
+      out_string
+            PARAM "\n"
+            t32 = CALL out_string
+      set_var
+            PARAM 6
+            t33 = CALL set_var
+      value
+            t34 = CALL value
+      method5
+            PARAM t34
+            t35 = CALL method5
+	avar = (newC)@t35
+      value
+            t36 = CALL value
+      out_int
+            PARAM t36
+            t37 = CALL out_int
+      out_string
+            PARAM "\n"
+            t38 = CALL out_string

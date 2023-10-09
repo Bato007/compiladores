@@ -452,8 +452,12 @@ class PostOrderVisitor(YalpVisitor):
     intermittent_address_three_way_file.add_line_to_txt(f'      {fun_name}')
     original_three_way_file.add_line_to_txt(f'      {fun_name}')
     
-    
     def get_correct_context(var_name):
+        is_not = False
+        if (var_name[0] == "~"):
+          var_name = var_name[1:]
+          is_not = True
+
         let_context = None
         for possible_let in reversed(range(self.let_id + 1)) : 
           key = f'{self.class_context}-{self.fun_context}-let-{possible_let + 1}-{var_name}'
@@ -474,6 +478,8 @@ class PostOrderVisitor(YalpVisitor):
         elif (class_context != None):
           var_name = f'{self.class_context}-{var_name}'
         
+        if (is_not):
+          var_name = f'~{var_name}'
         return var_name
 
     for param in children:
