@@ -719,7 +719,7 @@ class PostOrderVisitor(YalpVisitor):
             original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{temp}')
             temporal_found = True
             break
-        if (not temporal_found and self.lastTemp != None and self.lastTemp.originalRule == tree.getText().split("<-")[-1]):
+        if (not temporal_found and self.lastTemp != None and self.lastTemp.unlabeledRule == tree.getText().split("<-")[-1]):
           intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
         elif (not temporal_found):
@@ -919,7 +919,7 @@ class PostOrderVisitor(YalpVisitor):
 
 
 
-        if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.originalRule):
+        if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.unlabeledRule):
           intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {self.temporal_context}-t{self.lastTemp._id}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         elif (len(self.functionsTemp) > 0):
