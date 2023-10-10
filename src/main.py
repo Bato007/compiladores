@@ -478,7 +478,7 @@ class PostOrderVisitor(YalpVisitor):
           var_name = f'{self.class_context}-{self.fun_context}-{var_name}'
         elif (class_context != None):
           var_name = f'{self.class_context}-{var_name}'
-        elif (self.lastTemp.unlabeledRule == var_name):
+        elif (self.lastTemp != None and self.lastTemp.unlabeledRule == var_name):
           var_name = f'{self.temporal_context}-t{self.lastTemp._id}'
         
         if (is_not):
