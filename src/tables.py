@@ -16,11 +16,11 @@ class LoopObject(object):
 	def start(self, is_if=False, is_while=False):
 		content = ""
 		if (is_if):
-			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}')
-			content += (f'	goto L{self._id + 1}')
+			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}\n')
+			content += (f'	goto L{self._id + 1}\n')
 		elif (is_while): # while
-			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}')
-			content += (f'	goto END_L{self._id - 1}')
+			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}\n')
+			content += (f'	goto END_L{self._id - 1}\n')
 		content += (f'	L{self._id}')
 
 		return content
@@ -28,7 +28,7 @@ class LoopObject(object):
 	def end(self, is_while=False):
 		content = ""
 		if (is_while):
-			content += (f'	goto L{self._id}')
+			content += (f'	goto L{self._id}\n')
 		content += (f'	END_L{self._id}')
 		return content
 
@@ -37,10 +37,10 @@ class LoopObject(object):
 
 	def __str__(self):
 		if (self.goto != None):
-			details += f'	if {self.context}-t{self.if_condition} goto L{self.goto}'
+			details += f'	if {self.context}-t{self.if_condition} goto L{self.goto}\n'
 		else: # while
 			details = f'	END_L{self._id}\n'
-			details += f'	if {self.context}-t{self.if_condition} goto L{self._id}'
+			details += f'	if {self.context}-t{self.if_condition} goto L{self._id}\n'
 		return details
 	
 class TemporalObject(object):
@@ -113,7 +113,7 @@ class TemporalsTable(object):
 	):
 		key = f'{context}-t{_id}'
 		if key in self.table.keys():
-			return False
+			self.table.pop(key)
 
 		temporal = TemporalObject(
 			_id,

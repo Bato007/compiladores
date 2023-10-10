@@ -1,205 +1,62 @@
-A
+Factorial
       GP[0] = 0
-   A
-   A
-      GP[0] = num
-   A
-   A
-     	GP[903] = GP[8]+GP[12]
-      GP[8] = GP[903]
-      set_var
-            PARAM GP[8]
-            GP[811] = CALL set_var
-   A
-      GP[8] = ~num
-      set_var
-            PARAM GP[8]
-            GP[903] = CALL set_var
-   A
-     	GP[903] = GP[12]<GP[8]
-     	GP[811] = GP[8]-GP[12]
-      GP[8] = GP[811]
-      set_var
-            PARAM GP[8]
-            GP[815] = CALL set_var
-     	GP[887] = GP[12]-GP[8]
-      GP[8] = GP[887]
-      set_var
-            PARAM GP[8]
-            GP[803] = CALL set_var
-   A
-     	GP[903] = GP[8]<=GP[8]
-     	GP[811] = GP[8]*GP[8]
-      GP[8] = GP[811]
-     	GP[815] = GP[8]+1
-      GP[8] = GP[815]
-      set_var
-            PARAM GP[8]
-            GP[887] = CALL set_var
-B
-   B
-     	GP[903] = GP[8]*GP[8]
-      GP[8] = GP[903]
-      set_var
-            PARAM GP[8]
-            GP[811] = CALL set_var
-C
-   C
-      GP[8] = ~num
-      set_var
-            PARAM GP[8]
-            GP[903] = CALL set_var
-   C
-     	GP[903] = GP[8]*GP[8]
-     	GP[811] = GP[903]*GP[8]
-      GP[8] = GP[811]
-      set_var
-            PARAM GP[8]
-            GP[815] = CALL set_var
-D
-   D
-     	GP[903] = GP[8]<0
-      method7
-            PARAM ~GP[8]
-            GP[811] = CALL method7
-     	GP[815] = 0=GP[8]
-     	GP[803] = 1=GP[8]
-     	GP[855] = 2=GP[8]
-     	GP[819] = GP[8]-3
-      method7
-            PARAM x-3
-            GP[831] = CALL method7
-E
-   E
-     	GP[903] = GP[8]/8
-      GP[8] = GP[903]
-      set_var
-            PARAM GP[8]
-            GP[811] = CALL set_var
+   Factorial
+     	GP[260] = GP[4]=0
+	if GP[260] goto L1
+	goto L2
+	L1
+      GP[8] = 0
+	L2
+     	GP[248] = GP[4]=1
+	if GP[248] goto L3
+	goto L4
+	L3
+      GP[8] = 1
+	L4
+     	GP[256] = GP[4]-1
+      factorial
+            PARAM GP[256]
+            GP[244] = CALL factorial
+     	GP[240] = GP[4]*GP[244]
+      GP[8] = GP[240]
+	END_L4
+	END_L2
+Fibonacci
+   Fibonacci
+     	GP[260] = GP[4]=1
+	if GP[260] goto L1
+	goto L2
+	L1
+      GP[8] = 1
+	L2
+     	GP[248] = GP[4]=2
+	if GP[248] goto L3
+	goto L4
+	L3
+      GP[8] = 1
+	L4
+     	GP[256] = GP[4]-1
+      fibonacci
+            PARAM GP[256]
+            GP[244] = CALL fibonacci
+     	GP[240] = GP[4]-2
+      fibonacci
+            PARAM GP[240]
+            GP[252] = CALL fibonacci
+     	GP[264] = GP[244]+GP[252]
+      GP[8] = GP[264]
+	END_L4
+	END_L2
 Main
-      GP[0] = String
-      GP[16] = A
-      GP[176] = A
-      GP[336] = true
+      GP[0] = 10
+      GP[4] = Factorial
+      GP[28] = Fibonacci
    Main
-     	GP[903] = GP[8]<0
-      is_even
-            PARAM ~GP[8]
-            GP[811] = CALL is_even
-     	GP[815] = 0=GP[8]
-     	GP[803] = 1=GP[8]
-     	GP[855] = GP[8]-2
-      is_even
-            PARAM x-2
-            GP[839] = CALL is_even
-   Main
-      GP[16] = (newA)
-      set_var
-            PARAM 2
-            GP[903] = CALL set_var
-      value
-            GP[811] = CALL value
+      GP[4] = newFactorial
+      GP[28] = newFibonacci
+      fibonacci
+            PARAM GP[0]
+            GP[260] = CALL fibonacci
       out_int
-            PARAM GP[811]
-            GP[815] = CALL out_int
-      value
-            GP[887] = CALL value
-      is_even
-            PARAM GP[887]
-            GP[803] = CALL is_even
-      out_string
-            PARAM " es par!\n"
-            GP[919] = CALL out_string
-      out_string
-            PARAM " es impar!\n"
-            GP[855] = CALL out_string
-      set_var
-            PARAM 3
-            GP[839] = CALL set_var
-      GP[176] = GP[839]
-      value
-            GP[819] = CALL value
-      value
-            GP[831] = CALL value
-      method2
-            PARAM avar.value()
-            PARAM GP[831]
-            GP[787] = CALL method2
-      GP[16] = GP[787]
-      value
-            GP[779] = CALL value
-      out_int
-            PARAM GP[779]
-            GP[823] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[883] = CALL out_string
-      value
-            GP[835] = CALL value
-      method6
-            PARAM GP[835]
-            GP[775] = CALL method6
-      GP[16] = GP[775]
-      value
-            GP[875] = CALL value
-      out_int
-            PARAM GP[875]
-            GP[859] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[847] = CALL out_string
-      set_var
-            PARAM 5
-            GP[791] = CALL set_var
-      GP[176] = GP[791]
-      value
-            GP[807] = CALL value
-      value
-            GP[911] = CALL value
-      method4
-            PARAM avar.value()
-            PARAM GP[911]
-            GP[843] = CALL method4
-      GP[16] = GP[843]
-      value
-            GP[795] = CALL value
-      out_int
-            PARAM GP[795]
-            GP[863] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[799] = CALL out_string
-      set_var
-            PARAM 5
-            GP[871] = CALL set_var
-      value
-            GP[783] = CALL value
-      method5
-            PARAM GP[783]
-            GP[907] = CALL method5
-      GP[16] = Main-main-(newC)@t29
-      value
-            GP[891] = CALL value
-      out_int
-            PARAM GP[891]
-            GP[895] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[915] = CALL out_string
-      set_var
-            PARAM 6
-            GP[899] = CALL set_var
-      value
-            GP[879] = CALL value
-      method5
-            PARAM GP[879]
-            GP[851] = CALL method5
-      GP[16] = Main-main-(newC)@t35
-      value
-            GP[827] = CALL value
-      out_int
-            PARAM GP[827]
-            GP[867] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[923] = CALL out_string
+            PARAM GP[260]
+            GP[248] = CALL out_int

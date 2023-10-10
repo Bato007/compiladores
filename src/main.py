@@ -368,6 +368,7 @@ class PostOrderVisitor(YalpVisitor):
     self.let_id = 0
     self.inherited_context = ''
     self.lastTemp = None
+    self.freeTemps = []
     self.functionsTemp = []
     self.loops = []
     self.temporal_context = ''
@@ -477,6 +478,8 @@ class PostOrderVisitor(YalpVisitor):
           var_name = f'{self.class_context}-{self.fun_context}-{var_name}'
         elif (class_context != None):
           var_name = f'{self.class_context}-{var_name}'
+        elif (self.lastTemp.unlabeledRule == var_name):
+          var_name = f'{self.temporal_context}-t{self.lastTemp._id}'
         
         if (is_not):
           var_name = f'~{var_name}'
@@ -502,6 +505,10 @@ class PostOrderVisitor(YalpVisitor):
     # Saving temporary var
     if (self.lastTemp == None):
       current_id = 1
+      temporals_set.add(f't{current_id}')
+    elif len(self.freeTemps) > 0:
+      current_id = self.freeTemps[0]
+      del self.freeTemps[-1]
       temporals_set.add(f't{current_id}')
     else:
       current_id = self.lastTemp._id + 1
@@ -577,6 +584,7 @@ class PostOrderVisitor(YalpVisitor):
       self.lastTemp = None
       self.loops = []
       self.functionsTemp = []
+      self.freeTemps = []
 
     if isinstance(tree, TerminalNode):
       if (tree.getText() in unoverloading): return tree.getText()
@@ -642,8 +650,17 @@ class PostOrderVisitor(YalpVisitor):
           original_three_way_file.add_line_to_txt(new_return_temporary.three_way_print())
           original_three_way_file.add_line_to_txt(f'        return t{new_return_temporary._id}')
 
-        if (child.getText() == "fi" or child.getText() == "pool"): self.loops.pop().end()
-        if (child.getText() == "pool"): self.loops.pop().end(is_while=True)
+        if (child.getText() == "fi" or child.getText() == "pool"): 
+          res = self.loops.pop().end()
+          original_three_way_file.add_line_to_txt(res)
+          intermittent_address_three_way_file.add_line_to_txt(res)
+
+          
+        if (child.getText() == "pool"): 
+          res = self.loops.pop().end(is_while=True)
+          original_three_way_file.add_line_to_txt(res)
+          intermittent_address_three_way_file.add_line_to_txt(res)
+          
 
         if (child.getText() == "then" or child.getText() == "while"):
           next_condition = tree.getChild(i + 1).getText()
@@ -653,7 +670,12 @@ class PostOrderVisitor(YalpVisitor):
               current_id = 1
               temporals_set.add(f't{current_id}')
             else:
-              current_id = self.lastTemp._id + 1
+              if (len(self.freeTemps) > 0):
+                reusable_id = self.freeTemps[0]
+                del self.freeTemps[-1]
+                current_id = reusable_id
+              else:
+                current_id = self.lastTemp._id + 1
               temporals_set.add(f't{current_id}')
 
             added_temporal = temporals_table.add(current_id, self.temporal_context, next_condition)
@@ -689,20 +711,33 @@ class PostOrderVisitor(YalpVisitor):
             self.lastTemp = added_temporal
 
           if (child.getText() == "while"):
-            next_id = self.lastTemp._id + 1 if (self.lastTemp != None) else 1
+            if (len(self.freeTemps) > 0):
+              reusable_id = self.freeTemps[0]
+              next_id = reusable_id
+            else:
+              next_id = self.lastTemp._id + 1 if (self.lastTemp != None) else 1
+
+            temporals_set.add(f't{current_id}')
             lastLoop = LoopObject(
               current_id,
               self.temporal_context,
               next_id
             )
           else:
+            if (len(self.freeTemps) > 0):
+              reusable_id = self.freeTemps[0]
+              if_condition = reusable_id
+            else:
+              if_condition = self.lastTemp._id
+
             lastLoop = LoopObject(
               current_id,
               self.temporal_context,
-              self.lastTemp._id
+              if_condition
             )
           self.loops.append(lastLoop)
-          self.loops[-1].start(is_if=child.getText() == "then", is_while=child.getText() == "loop")
+          original_three_way_file.add_line_to_txt(self.loops[-1].start(is_if=child.getText() == "then", is_while=child.getText() == "loop"))
+          intermittent_address_three_way_file.add_line_to_txt(self.loops[-1].start(is_if=child.getText() == "then", is_while=child.getText() == "loop"))
 
         original_children.append(child.getText())
         child_types.append(self.visit(child))
@@ -716,11 +751,13 @@ class PostOrderVisitor(YalpVisitor):
           temp_content = temporals_table.get(self.temporal_context, temp)
           if temp_content in tree.getText().split("<-")[-1]:
             intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{temp}')
+            self.freeTemps.append(temp)
             original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{temp}')
             temporal_found = True
             break
         if (not temporal_found and self.lastTemp != None and self.lastTemp.unlabeledRule == tree.getText().split("<-")[-1]):
           intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
+          self.freeTemps.append(self.lastTemp._id)
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
         elif (not temporal_found):
           intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {tree.getChild(-1).getText()}')
@@ -856,6 +893,10 @@ class PostOrderVisitor(YalpVisitor):
         if (self.lastTemp == None):
           current_id = 1
           temporals_set.add(f't{current_id}')
+        elif len(self.freeTemps) > 0:
+          current_id = self.freeTemps[0]
+          del self.freeTemps[-1]
+          temporals_set.add(f't{current_id}')
         else:
           current_id = self.lastTemp._id + 1
           temporals_set.add(f't{current_id}')
@@ -863,6 +904,7 @@ class PostOrderVisitor(YalpVisitor):
         labeled_tree = f'{leftOperandText}{_Text}{rightOperandText}'
         added_temporal = temporals_table.add(current_id, self.temporal_context, labeled_tree,
                                              unlabeledRule=f'{"".join(original_children)}')
+
 
         if (self.lastTemp != None):
           added_temporal.setRule(
@@ -916,22 +958,52 @@ class PostOrderVisitor(YalpVisitor):
         elif (class_context != None):
           var_name = f'{self.class_context}-{tree.getChild(0)}'
 
-
-
-
         if (self.lastTemp != None and tree.getText().split("<-")[-1] == self.lastTemp.unlabeledRule):
+          self.freeTemps.append(self.lastTemp._id)
+          
           intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {self.temporal_context}-t{self.lastTemp._id}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = t{self.lastTemp._id}')
         elif (len(self.functionsTemp) > 0):
           last_function_call_id = self.functionsTemp[-1]
           inner_value = temporals_table.get(temporal_context=self.temporal_context, _id=last_function_call_id)
           temporal_assignment = tree.getText().split("<-")[-1].replace(inner_value, f't{last_function_call_id}')
+          self.freeTemps.append(last_function_call_id)
 
           intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {self.temporal_context}-{temporal_assignment}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {temporal_assignment}')
         else:
-          intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {tree.getChild(-1).getText()}')
-          original_three_way_file.add_line_to_txt(f'  {tree.getChild(0)} = {tree.getChild(-1).getText()}')
+          let_context = None
+          inner_param = tree.getChild(-1).getText()
+          
+          is_not = False
+          if (inner_param[0] == "~"):
+            inner_param = inner_param[1:]
+            is_not = True
+
+          for possible_let in reversed(range(self.let_id + 1)) : 
+            key = f'{self.class_context}-{self.fun_context}-let-{possible_let + 1}-{inner_param}'
+            try:
+              variables_table.table[key]
+              let_context = key
+              break
+            except:
+              pass
+
+          function_context = variables_table.get(inner_param, self.class_context+"-"+self.fun_context)
+          class_context = variables_table.get(inner_param, self.class_context)
+
+          if (let_context != None):
+            inner_param = let_context
+          elif (function_context != None):
+            inner_param = f'{self.class_context}-{self.fun_context}-{inner_param}'
+          elif (class_context != None):
+            inner_param = f'{self.class_context}-{inner_param}'
+
+          if (is_not):
+            inner_param = f'~{inner_param}'
+
+          intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {inner_param}')
+          original_three_way_file.add_line_to_txt(f'  {tree.getChild(0)} = {inner_param}')
         
 
         if (ERROR_STRING in child_types):
@@ -972,6 +1044,8 @@ class PostOrderVisitor(YalpVisitor):
             return ERROR_STRING
 
           i += 1
+
+
         return left_type
 
       if node_type == YalpParser.ObjCreationContext:
