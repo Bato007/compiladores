@@ -2,50 +2,62 @@ A
       A-var = 0
    A
    A
-      A-var = num
+      A-var = A-set_var-num
    A
    A
      	A-method2-t1 = A-method2-num1+A-method2-num2
       A-method2-let-1-x = A-method2-t1
       set_var
             PARAM A-method2-let-1-x
-            A-method2-t2 = CALL set_var
+            A-method2-t1 = CALL set_var
    A
-      A-method3-let-1-x = ~num
+      A-method3-let-1-x = ~A-method3-num
       set_var
             PARAM A-method3-let-1-x
             A-method3-t1 = CALL set_var
    A
      	A-method4-t1 = A-method4-num2<A-method4-num1
+	if A-method4-t1 goto L1
+	goto L2
+	L1
      	A-method4-t2 = A-method4-num1-A-method4-num2
       A-method4-let-2-x = A-method4-t2
       set_var
             PARAM A-method4-let-2-x
-            A-method4-t3 = CALL set_var
-     	A-method4-t4 = A-method4-num2-A-method4-num1
-      A-method4-let-2-x = A-method4-t4
+            A-method4-t2 = CALL set_var
+	L2
+     	A-method4-t3 = A-method4-num2-A-method4-num1
+      A-method4-let-2-x = A-method4-t3
       set_var
             PARAM A-method4-let-2-x
-            A-method4-t5 = CALL set_var
+            A-method4-t3 = CALL set_var
+	END_L2
    A
+	L1
      	A-method5-t1 = A-method5-let-2-y<=A-method5-num
+	if A-method5-t1 goto L2
+	goto END_L1
+	L2
      	A-method5-t2 = A-method5-let-1-x*A-method5-let-2-y
       A-method5-let-1-x = A-method5-t2
-     	A-method5-t3 = A-method5-let-2-y+1
-      A-method5-let-2-y = A-method5-t3
+     	A-method5-t2 = A-method5-let-2-y+1
+      A-method5-let-2-y = A-method5-t2
+	END_L2
+	goto L1
+	END_L1
       set_var
             PARAM A-method5-let-1-x
-            A-method5-t4 = CALL set_var
+            A-method5-t2 = CALL set_var
 B
    B
      	B-method5-t1 = B-method5-num*B-method5-num
       B-method5-let-1-x = B-method5-t1
       set_var
             PARAM B-method5-let-1-x
-            B-method5-t2 = CALL set_var
+            B-method5-t1 = CALL set_var
 C
    C
-      C-method6-let-1-x = ~num
+      C-method6-let-1-x = ~C-method6-num
       set_var
             PARAM C-method6-let-1-x
             C-method6-t1 = CALL set_var
@@ -55,27 +67,47 @@ C
       C-method5-let-1-x = C-method5-t2
       set_var
             PARAM C-method5-let-1-x
-            C-method5-t3 = CALL set_var
+            C-method5-t2 = CALL set_var
 D
    D
      	D-method7-t1 = D-method7-let-1-x<0
+	if D-method7-t1 goto L1
+	goto L2
+	L1
       method7
             PARAM ~D-method7-let-1-x
             D-method7-t2 = CALL method7
+	L2
      	D-method7-t3 = 0=D-method7-let-1-x
+	if D-method7-t4 goto L3
+	goto L4
+	L3
+	L4
      	D-method7-t5 = 1=D-method7-let-1-x
+	if D-method7-t6 goto L5
+	goto L6
+	L5
+	L6
      	D-method7-t7 = 2=D-method7-let-1-x
+	if D-method7-t8 goto L7
+	goto L8
+	L7
+	L8
      	D-method7-t9 = D-method7-let-1-x-3
       method7
-            PARAM x-3
+            PARAM D-method7-t9
             D-method7-t10 = CALL method7
+	END_L8
+	END_L6
+	END_L4
+	END_L2
 E
    E
      	E-method6-t1 = E-method6-num/8
       E-method6-let-1-x = E-method6-t1
       set_var
             PARAM E-method6-let-1-x
-            E-method6-t2 = CALL set_var
+            E-method6-t1 = CALL set_var
 Main
       Main-char = String
       Main-avar = A
@@ -83,15 +115,30 @@ Main
       Main-flag = true
    Main
      	Main-is_even-t1 = Main-is_even-let-1-x<0
+	if Main-is_even-t1 goto L1
+	goto L2
+	L1
       is_even
             PARAM ~Main-is_even-let-1-x
             Main-is_even-t2 = CALL is_even
+	L2
      	Main-is_even-t3 = 0=Main-is_even-let-1-x
+	if Main-is_even-t4 goto L3
+	goto L4
+	L3
+	L4
      	Main-is_even-t5 = 1=Main-is_even-let-1-x
+	if Main-is_even-t6 goto L5
+	goto L6
+	L5
+	L6
      	Main-is_even-t7 = Main-is_even-let-1-x-2
       is_even
-            PARAM x-2
+            PARAM Main-is_even-t7
             Main-is_even-t8 = CALL is_even
+	END_L6
+	END_L4
+	END_L2
    Main
       Main-avar = (newA)
       set_var
@@ -107,60 +154,82 @@ Main
       is_even
             PARAM Main-main-t4
             Main-main-t5 = CALL is_even
+	if Main-main-t5 goto L1
+	goto L2
+	L1
       out_string
             PARAM " es par!\n"
             Main-main-t6 = CALL out_string
+	L2
       out_string
             PARAM " es impar!\n"
             Main-main-t7 = CALL out_string
+	END_L2
       set_var
             PARAM 3
             Main-main-t8 = CALL set_var
       Main-a_var = Main-main-t8
       value
-            Main-main-t9 = CALL value
+            Main-main-t8 = CALL value
       value
-            Main-main-t10 = CALL value
+            Main-main-t9 = CALL value
       method2
             PARAM avar.value()
+            PARAM Main-main-t9
+            Main-main-t10 = CALL method2
+      Main-avar = Main-main-t10
+      value
+            Main-main-t10 = CALL value
+      out_int
             PARAM Main-main-t10
-            Main-main-t11 = CALL method2
-      Main-avar = Main-main-t11
-      value
-            Main-main-t12 = CALL value
-      out_int
-            PARAM Main-main-t12
-            Main-main-t13 = CALL out_int
+            Main-main-t11 = CALL out_int
       out_string
             PARAM "\n"
-            Main-main-t14 = CALL out_string
+            Main-main-t12 = CALL out_string
       value
-            Main-main-t15 = CALL value
+            Main-main-t13 = CALL value
       method6
-            PARAM Main-main-t15
-            Main-main-t16 = CALL method6
-      Main-avar = Main-main-t16
+            PARAM Main-main-t13
+            Main-main-t14 = CALL method6
+      Main-avar = Main-main-t14
       value
-            Main-main-t17 = CALL value
+            Main-main-t14 = CALL value
       out_int
-            PARAM Main-main-t17
-            Main-main-t18 = CALL out_int
+            PARAM Main-main-t14
+            Main-main-t15 = CALL out_int
       out_string
             PARAM "\n"
-            Main-main-t19 = CALL out_string
+            Main-main-t16 = CALL out_string
       set_var
             PARAM 5
-            Main-main-t20 = CALL set_var
-      Main-a_var = Main-main-t20
+            Main-main-t17 = CALL set_var
+      Main-a_var = Main-main-t17
       value
-            Main-main-t21 = CALL value
+            Main-main-t17 = CALL value
       value
-            Main-main-t22 = CALL value
+            Main-main-t18 = CALL value
       method4
             PARAM avar.value()
-            PARAM Main-main-t22
-            Main-main-t23 = CALL method4
-      Main-avar = Main-main-t23
+            PARAM Main-main-t18
+            Main-main-t19 = CALL method4
+      Main-avar = Main-main-t19
+      value
+            Main-main-t19 = CALL value
+      out_int
+            PARAM Main-main-t19
+            Main-main-t20 = CALL out_int
+      out_string
+            PARAM "\n"
+            Main-main-t21 = CALL out_string
+      set_var
+            PARAM 5
+            Main-main-t22 = CALL set_var
+      value
+            Main-main-t23 = CALL value
+      method5
+            PARAM Main-main-t23
+            Main-main-t24 = CALL method5
+      Main-avar = Main-main-(newC)@t24
       value
             Main-main-t24 = CALL value
       out_int
@@ -170,7 +239,7 @@ Main
             PARAM "\n"
             Main-main-t26 = CALL out_string
       set_var
-            PARAM 5
+            PARAM 6
             Main-main-t27 = CALL set_var
       value
             Main-main-t28 = CALL value
@@ -179,27 +248,10 @@ Main
             Main-main-t29 = CALL method5
       Main-avar = Main-main-(newC)@t29
       value
-            Main-main-t30 = CALL value
+            Main-main-t29 = CALL value
       out_int
-            PARAM Main-main-t30
-            Main-main-t31 = CALL out_int
+            PARAM Main-main-t29
+            Main-main-t30 = CALL out_int
       out_string
             PARAM "\n"
-            Main-main-t32 = CALL out_string
-      set_var
-            PARAM 6
-            Main-main-t33 = CALL set_var
-      value
-            Main-main-t34 = CALL value
-      method5
-            PARAM Main-main-t34
-            Main-main-t35 = CALL method5
-      Main-avar = Main-main-(newC)@t35
-      value
-            Main-main-t36 = CALL value
-      out_int
-            PARAM Main-main-t36
-            Main-main-t37 = CALL out_int
-      out_string
-            PARAM "\n"
-            Main-main-t38 = CALL out_string
+            Main-main-t31 = CALL out_string
