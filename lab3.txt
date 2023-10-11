@@ -1,0 +1,56 @@
+# test 1: 
+# a = 24
+# b = 36
+# result = 12
+
+# test 2:
+# a = 54
+# b = 24
+# result = 6
+
+# test 3:
+# a = 101
+# b = 103
+# result = 1
+
+# test 4:
+# a = 56
+# b = 98
+# result = 14
+
+# test 5:
+# a = 270
+# b = 192
+# result = 6
+
+# def MCD(a, b)
+# Load a into $t0
+# Load b into $t1
+li $t0, 24
+li $t1, 36 
+
+mcd:
+
+# if t0 = 0 then end_program
+beq $t1, $zero, end_of_program
+
+# else
+slt $t2, $t0, $t1   # If $t0 < $t1, a < b, set $t2 to 1, otherwise set it to 0
+bne $t2, $zero, mcd_3way_switch_variables # If $t2 is not 0, branch to is_greater label
+
+div $t0, $t1       # Divides $t0 by $t1
+mfhi $t2           # Moves the remainder from HI to $t2
+j mcd_switch_variables
+
+# Changes places now a is b and b is a
+mcd_3way_switch_variables:
+move $t2, $t0
+
+mcd_switch_variables:
+move $t0, $t1
+move $t1, $t2
+j mcd
+
+# finish program
+end_of_program:
+move $s0, $t0
