@@ -5,56 +5,56 @@ A
   var = A-set_var-num
    A
    A
-     	t1 = A-method2-num1+A-method2-num2
-	x = t1
+     	t3 = t1+t2
+	x = t3
       set_var
             PARAM A-method2-let-1-x
-            t1 = CALL set_var
+            t3 = CALL set_var
    A
   x = ~A-method3-num
       set_var
             PARAM A-method3-let-1-x
             t1 = CALL set_var
    A
-     	t1 = A-method4-num2<A-method4-num1
-	if A-method4-t1 goto L1
+     	t3 = t1<t2
+	if A-method4-t3 goto L1
 	goto L2
 	L1
-     	t2 = A-method4-num1-A-method4-num2
-	x = t2
+     	t6 = t4-t5
+	x = t6
       set_var
             PARAM A-method4-let-2-x
-            t2 = CALL set_var
+            t6 = CALL set_var
 	L2
-     	t3 = A-method4-num2-A-method4-num1
-	x = t3
+     	t9 = t7-t8
+	x = t9
       set_var
             PARAM A-method4-let-2-x
-            t3 = CALL set_var
+            t9 = CALL set_var
 	END_L2
    A
 	L1
-     	t1 = A-method5-let-2-y<=A-method5-num
-	if A-method5-t1 goto L2
+     	t3 = t1<=t2
+	if A-method5-t3 goto L2
 	goto END_L1
 	L2
-     	t2 = A-method5-let-1-x*A-method5-let-2-y
-	x = t2
-     	t2 = A-method5-let-2-y+1
-	y = t2
+     	t6 = t4*t5
+	x = t6
+     	t7 = t6+1
+	y = t7
 	END_L2
 	goto L1
 	END_L1
       set_var
             PARAM A-method5-let-1-x
-            t2 = CALL set_var
+            t7 = CALL set_var
 B
    B
-     	t1 = B-method5-num*B-method5-num
-	x = t1
+     	t3 = t1*t2
+	x = t3
       set_var
             PARAM B-method5-let-1-x
-            t1 = CALL set_var
+            t3 = CALL set_var
 C
    C
   x = ~C-method6-num
@@ -62,85 +62,85 @@ C
             PARAM C-method6-let-1-x
             t1 = CALL set_var
    C
-     	t1 = C-method5-num*C-method5-num
-     	t2 = C-method5-t1*C-method5-num
-	x = t2
+     	t3 = t1*t2
+     	t5 = C-method5-t3*t4
+	x = t5
       set_var
             PARAM C-method5-let-1-x
-            t2 = CALL set_var
+            t5 = CALL set_var
 D
    D
-     	t1 = D-method7-let-1-x<0
-	if D-method7-t1 goto L1
+     	t2 = t1<0
+	if D-method7-t2 goto L1
 	goto L2
 	L1
       method7
             PARAM ~D-method7-let-1-x
-            t2 = CALL method7
+            t3 = CALL method7
 	L2
-     	t3 = 0=D-method7-let-1-x
-     	t4 = true
-	if D-method7-t4 goto L3
+     	t5 = 0=t4
+     	t6 = true
+	if D-method7-t6 goto L3
 	goto L4
 	L3
 	L4
-     	t5 = 1=D-method7-let-1-x
-     	t6 = false
-	if D-method7-t6 goto L5
+     	t8 = 1=t7
+     	t9 = false
+	if D-method7-t9 goto L5
 	goto L6
 	L5
 	L6
-     	t7 = 2=D-method7-let-1-x
-     	t8 = false
-	if D-method7-t8 goto L7
+     	t11 = 2=t10
+     	t12 = false
+	if D-method7-t12 goto L7
 	goto L8
 	L7
 	L8
-     	t9 = D-method7-let-1-x-3
+     	t14 = t13-3
       method7
-            PARAM D-method7-t9
-            t10 = CALL method7
+            PARAM D-method7-t14
+            t15 = CALL method7
 	END_L8
 	END_L6
 	END_L4
 	END_L2
 E
    E
-     	t1 = E-method6-num/8
-	x = t1
+     	t2 = t1/8
+	x = t2
       set_var
             PARAM E-method6-let-1-x
-            t1 = CALL set_var
+            t2 = CALL set_var
 Main
 	char = String
 	avar = A
 	a_var = A
 	flag = true
    Main
-     	t1 = Main-is_even-let-1-x<0
-	if Main-is_even-t1 goto L1
+     	t2 = t1<0
+	if Main-is_even-t2 goto L1
 	goto L2
 	L1
       is_even
             PARAM ~Main-is_even-let-1-x
-            t2 = CALL is_even
+            t3 = CALL is_even
 	L2
-     	t3 = 0=Main-is_even-let-1-x
-     	t4 = true
-	if Main-is_even-t4 goto L3
+     	t5 = 0=t4
+     	t6 = true
+	if Main-is_even-t6 goto L3
 	goto L4
 	L3
 	L4
-     	t5 = 1=Main-is_even-let-1-x
-     	t6 = false
-	if Main-is_even-t6 goto L5
+     	t8 = 1=t7
+     	t9 = false
+	if Main-is_even-t9 goto L5
 	goto L6
 	L5
 	L6
-     	t7 = Main-is_even-let-1-x-2
+     	t11 = t10-2
       is_even
-            PARAM Main-is_even-t7
-            t8 = CALL is_even
+            PARAM Main-is_even-t11
+            t12 = CALL is_even
 	END_L6
 	END_L4
 	END_L2

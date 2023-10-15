@@ -85,8 +85,44 @@ class TemporalObject(object):
 	def three_way_print(self, tab="     	"):
 		return (f'{tab}t{self._id} = {self.intermediaryRule}')
 	
-	def three_way_print_context(self, context, tab="     	"):
-		return (f'{tab}{context}-t{self._id} = {self.intermediaryRule}')
+	def move_address(self, 
+					current_id, 
+					labeledOperandText,
+					tab="     	"):
+		
+		return f'{tab}lw $t{current_id}, {labeledOperandText}($gp)'
+
+	def three_way_print_context(self, 
+							 context, 
+							 labeled_tree,
+							 tab="     	"):
+		
+		text = ""
+		has_integer = False
+		operator = labeled_tree.pop(1)
+		for i in range(len(labeled_tree)):
+			if not labeled_tree[i].isdigit():
+				labeled_tree[i] = f'${labeled_tree[i]}'
+			else:
+				has_integer = True
+		
+		if (operator == "+"):
+			if (has_integer):
+				text += f'{tab}addi $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
+			else:
+				text += f'{tab}add $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
+
+			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
+		elif (operator == "/"):
+			text += f'{tab}div {labeled_tree[0]}, {labeled_tree[1]}\n'
+			text += f'{tab}mflo $t{self._id}\n'
+		
+			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
+		else:
+			text += f'{tab}{context}-t{self._id} = {self.intermediaryRule}'
+
+
+		return text
 
 	def __str__(self):
 		details = '{\n'

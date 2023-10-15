@@ -867,8 +867,8 @@ class PostOrderVisitor(YalpVisitor):
     
         leftOperand, _, rightOperand =  child_types
         leftOperandText, _Text, rightOperandText = original_children
-        leftOperandText = get_correct_context(leftOperandText)
-        rightOperandText = get_correct_context(rightOperandText)
+        labeledLeftOperandText = get_correct_context(leftOperandText)
+        labeledRightOperandText = get_correct_context(rightOperandText)
 
         if isinstance(rightOperand, list):
           rightOperand, temp = rightOperand
@@ -887,49 +887,92 @@ class PostOrderVisitor(YalpVisitor):
           return ERROR_STRING
 
 
-        # print("key", key)
-        # print("tree", tree.getText())
         # Saving temporary var
-        if (self.lastTemp == None):
-          current_id = 1
-          temporals_set.add(f't{current_id}')
-        elif len(self.freeTemps) > 0:
-          current_id = self.freeTemps[0]
-          del self.freeTemps[-1]
-          temporals_set.add(f't{current_id}')
-        else:
-          current_id = self.lastTemp._id + 1
-          temporals_set.add(f't{current_id}')
+        def get_correct_temp():
+          if (self.lastTemp == None):
+            current_id = 1
+            temporals_set.add(f't{current_id}')
+          elif len(self.freeTemps) > 0:
+            current_id = self.freeTemps[0]
+            del self.freeTemps[-1]
+            temporals_set.add(f't{current_id}')
+          else:
+            current_id = self.lastTemp._id + 1
+            temporals_set.add(f't{current_id}')
+          return current_id
 
-        labeled_tree = f'{leftOperandText}{_Text}{rightOperandText}'
-        added_temporal = temporals_table.add(current_id, self.temporal_context, labeled_tree,
+        labeled_tree = [labeledLeftOperandText, _Text, labeledRightOperandText]
+        current_id = get_correct_temp() - 1
+        
+        if (leftOperandText != labeledLeftOperandText):
+            current_id += 1
+            left_id = current_id
+            added_temporal = temporals_table.add(left_id, self.temporal_context, labeledLeftOperandText,
+                                                unlabeledRule="".join(labeled_tree))
+            intermittent_address_three_way_file.add_line_to_txt(added_temporal.move_address(
+              labeledOperandText=labeledLeftOperandText,
+              current_id=left_id
+            ))
+            if (self.lastTemp != None):
+              added_temporal.setRule(
+                rule="".join(labeled_tree),
+                content=self.lastTemp.unlabeledRule,
+                _id=self.lastTemp._id
+              )
+            # self.lastTemp = added_temporal
+            labeled_tree = [f't{left_id}', _Text, labeledRightOperandText]
+            
+        if (rightOperandText != labeledRightOperandText):
+            current_id += 1
+            right_id = current_id
+            added_temporal = temporals_table.add(right_id, self.temporal_context, labeledRightOperandText,
+                                                unlabeledRule="".join(labeled_tree))
+            intermittent_address_three_way_file.add_line_to_txt(added_temporal.move_address(
+              labeledOperandText=labeledRightOperandText,
+              current_id=right_id
+            ))
+            if (self.lastTemp != None):
+              added_temporal.setRule(
+                rule="".join(labeled_tree),
+                content=self.lastTemp.unlabeledRule,
+                _id=self.lastTemp._id
+              )
+            # self.lastTemp = added_temporal
+            try:
+              labeled_tree = [f't{left_id}', _Text, f't{right_id}']
+            except:
+              labeled_tree = [labeledLeftOperandText, _Text, f't{right_id}']
+        
+        added_temporal = temporals_table.add(current_id + 1, self.temporal_context, "".join(labeled_tree),
                                              unlabeledRule=f'{"".join(original_children)}')
 
 
         if (self.lastTemp != None):
           added_temporal.setRule(
-            rule=labeled_tree,
+            rule="".join(labeled_tree),
             content=self.lastTemp.unlabeledRule,
             _id=self.lastTemp._id
           )
         # Checking if is function call
         for tempId in self.functionsTemp:
           inner_value = temporals_table.get(temporal_context=self.temporal_context, _id=tempId)
-          if (inner_value == leftOperandText):
+          if (inner_value == labeledLeftOperandText):
                 added_temporal.setRule(
                   rule=added_temporal.intermediaryRule,
                   content=inner_value,
                   _id=tempId
                 )
-          elif (inner_value == rightOperandText):
+          elif (inner_value == labeledRightOperandText):
                 added_temporal.setRule(
                   rule=added_temporal.intermediaryRule,
                   content=inner_value,
                   _id=tempId
                 )
 
-
-        intermittent_address_three_way_file.add_line_to_txt(added_temporal.three_way_print_context(context=self.temporal_context))
+        intermittent_address_three_way_file.add_line_to_txt(added_temporal.three_way_print_context(
+          context=self.temporal_context,
+          labeled_tree=labeled_tree
+        ))
         original_three_way_file.add_line_to_txt(added_temporal.three_way_print())
         
         self.lastTemp = added_temporal
@@ -1184,14 +1227,20 @@ for line in Lines:
     if (var in line):
       try:
         offset = variables_table.table[var].offset
-        new_line = new_line.replace(var, f'GP[{offset}]')
+        if (("lw" or "sw") in line):
+          new_line = new_line.replace(var, f'{offset}')
+        else:
+          new_line = new_line.replace(var, f'GP[{offset}]')
       except:
         pass
   
   for temp in sorted(temporals_table.table, reverse=True):
     if (temp in line):
       if (temporals_table.getByKey(temp) != None): 
-        new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
+        if (("lw" or "sw") in line):
+          new_line = new_line.replace(var, f'{offset}')
+        else:
+          new_line = new_line.replace(var, f'GP[{temporals_table.getByKey(temp).offset}]')
 
   address_three_way_file.add_line_to_txt(new_line.rstrip())
 

@@ -5,73 +5,56 @@ A
       A-var = A-set_var-num
    A
    A
-     	lw $t1, A-method2-num1($gp)
-     	lw $t2, A-method2-num2($gp)
-     	add $t3, $t1, $t2
-     	sw $t3, A-method2-t3($gp)
-      A-method2-let-1-x = A-method2-t3
+     	A-method2-t1 = A-method2-num1+A-method2-num2
+      A-method2-let-1-x = A-method2-t1
       set_var
             PARAM A-method2-let-1-x
-            A-method2-t3 = CALL set_var
+            A-method2-t1 = CALL set_var
    A
       A-method3-let-1-x = ~A-method3-num
       set_var
             PARAM A-method3-let-1-x
             A-method3-t1 = CALL set_var
    A
-     	lw $t1, A-method4-num2($gp)
-     	lw $t2, A-method4-num1($gp)
-     	A-method4-t3 = t1<t2
-	if A-method4-t3 goto L1
+     	A-method4-t1 = A-method4-num2<A-method4-num1
+	if A-method4-t1 goto L1
 	goto L2
 	L1
-     	lw $t4, A-method4-num1($gp)
-     	lw $t5, A-method4-num2($gp)
-     	A-method4-t6 = t4-t5
-      A-method4-let-2-x = A-method4-t6
+     	A-method4-t2 = A-method4-num1-A-method4-num2
+      A-method4-let-2-x = A-method4-t2
       set_var
             PARAM A-method4-let-2-x
-            A-method4-t6 = CALL set_var
+            A-method4-t2 = CALL set_var
 	L2
-     	lw $t7, A-method4-num2($gp)
-     	lw $t8, A-method4-num1($gp)
-     	A-method4-t9 = t7-t8
-      A-method4-let-2-x = A-method4-t9
+     	A-method4-t3 = A-method4-num2-A-method4-num1
+      A-method4-let-2-x = A-method4-t3
       set_var
             PARAM A-method4-let-2-x
-            A-method4-t9 = CALL set_var
+            A-method4-t3 = CALL set_var
 	END_L2
    A
 	L1
-     	lw $t1, A-method5-let-2-y($gp)
-     	lw $t2, A-method5-num($gp)
-     	A-method5-t3 = t1<=t2
-	if A-method5-t3 goto L2
+     	A-method5-t1 = A-method5-let-2-y<=A-method5-num
+	if A-method5-t1 goto L2
 	goto END_L1
 	L2
-     	lw $t4, A-method5-let-1-x($gp)
-     	lw $t5, A-method5-let-2-y($gp)
-     	A-method5-t6 = t4*t5
-      A-method5-let-1-x = A-method5-t6
-     	lw $t6, A-method5-let-2-y($gp)
-     	addi $t7, $t6, 1
-     	sw $t7, A-method5-t7($gp)
-      A-method5-let-2-y = A-method5-t7
+     	A-method5-t2 = A-method5-let-1-x*A-method5-let-2-y
+      A-method5-let-1-x = A-method5-t2
+     	A-method5-t2 = A-method5-let-2-y+1
+      A-method5-let-2-y = A-method5-t2
 	END_L2
 	goto L1
 	END_L1
       set_var
             PARAM A-method5-let-1-x
-            A-method5-t7 = CALL set_var
+            A-method5-t2 = CALL set_var
 B
    B
-     	lw $t1, B-method5-num($gp)
-     	lw $t2, B-method5-num($gp)
-     	B-method5-t3 = t1*t2
-      B-method5-let-1-x = B-method5-t3
+     	B-method5-t1 = B-method5-num*B-method5-num
+      B-method5-let-1-x = B-method5-t1
       set_var
             PARAM B-method5-let-1-x
-            B-method5-t3 = CALL set_var
+            B-method5-t1 = CALL set_var
 C
    C
       C-method6-let-1-x = ~C-method6-num
@@ -79,95 +62,80 @@ C
             PARAM C-method6-let-1-x
             C-method6-t1 = CALL set_var
    C
-     	lw $t1, C-method5-num($gp)
-     	lw $t2, C-method5-num($gp)
-     	C-method5-t3 = t1*t2
-     	lw $t4, C-method5-num($gp)
-     	C-method5-t5 = C-method5-t3*t4
-      C-method5-let-1-x = C-method5-t5
+     	C-method5-t1 = C-method5-num*C-method5-num
+     	C-method5-t2 = C-method5-t1*C-method5-num
+      C-method5-let-1-x = C-method5-t2
       set_var
             PARAM C-method5-let-1-x
-            C-method5-t5 = CALL set_var
+            C-method5-t2 = CALL set_var
 D
    D
-     	lw $t1, D-method7-let-1-x($gp)
-     	D-method7-t2 = t1<0
-	if D-method7-t2 goto L1
+     	D-method7-t1 = D-method7-let-1-x<0
+	if D-method7-t1 goto L1
 	goto L2
 	L1
       method7
             PARAM ~D-method7-let-1-x
-            D-method7-t3 = CALL method7
+            D-method7-t2 = CALL method7
 	L2
-     	lw $t4, D-method7-let-1-x($gp)
-     	D-method7-t5 = 0=t4
-	if D-method7-t6 goto L3
+     	D-method7-t3 = 0=D-method7-let-1-x
+	if D-method7-t4 goto L3
 	goto L4
 	L3
 	L4
-     	lw $t7, D-method7-let-1-x($gp)
-     	D-method7-t8 = 1=t7
-	if D-method7-t9 goto L5
+     	D-method7-t5 = 1=D-method7-let-1-x
+	if D-method7-t6 goto L5
 	goto L6
 	L5
 	L6
-     	lw $t10, D-method7-let-1-x($gp)
-     	D-method7-t11 = 2=t10
-	if D-method7-t12 goto L7
+     	D-method7-t7 = 2=D-method7-let-1-x
+	if D-method7-t8 goto L7
 	goto L8
 	L7
 	L8
-     	lw $t13, D-method7-let-1-x($gp)
-     	D-method7-t14 = t13-3
+     	D-method7-t9 = D-method7-let-1-x-3
       method7
-            PARAM D-method7-t14
-            D-method7-t15 = CALL method7
+            PARAM D-method7-t9
+            D-method7-t10 = CALL method7
 	END_L8
 	END_L6
 	END_L4
 	END_L2
 E
    E
-     	lw $t1, E-method6-num($gp)
-     	div $t1, 8
-     	mflo $t2
-     	sw $t2, E-method6-t2($gp)
-      E-method6-let-1-x = E-method6-t2
+     	E-method6-t1 = E-method6-num/8
+      E-method6-let-1-x = E-method6-t1
       set_var
             PARAM E-method6-let-1-x
-            E-method6-t2 = CALL set_var
+            E-method6-t1 = CALL set_var
 Main
       Main-char = String
       Main-avar = A
       Main-a_var = A
       Main-flag = true
    Main
-     	lw $t1, Main-is_even-let-1-x($gp)
-     	Main-is_even-t2 = t1<0
-	if Main-is_even-t2 goto L1
+     	Main-is_even-t1 = Main-is_even-let-1-x<0
+	if Main-is_even-t1 goto L1
 	goto L2
 	L1
       is_even
             PARAM ~Main-is_even-let-1-x
-            Main-is_even-t3 = CALL is_even
+            Main-is_even-t2 = CALL is_even
 	L2
-     	lw $t4, Main-is_even-let-1-x($gp)
-     	Main-is_even-t5 = 0=t4
-	if Main-is_even-t6 goto L3
+     	Main-is_even-t3 = 0=Main-is_even-let-1-x
+	if Main-is_even-t4 goto L3
 	goto L4
 	L3
 	L4
-     	lw $t7, Main-is_even-let-1-x($gp)
-     	Main-is_even-t8 = 1=t7
-	if Main-is_even-t9 goto L5
+     	Main-is_even-t5 = 1=Main-is_even-let-1-x
+	if Main-is_even-t6 goto L5
 	goto L6
 	L5
 	L6
-     	lw $t10, Main-is_even-let-1-x($gp)
-     	Main-is_even-t11 = t10-2
+     	Main-is_even-t7 = Main-is_even-let-1-x-2
       is_even
-            PARAM Main-is_even-t11
-            Main-is_even-t12 = CALL is_even
+            PARAM Main-is_even-t7
+            Main-is_even-t8 = CALL is_even
 	END_L6
 	END_L4
 	END_L2
