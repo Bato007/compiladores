@@ -909,6 +909,7 @@ class PostOrderVisitor(YalpVisitor):
             left_id = current_id
             added_temporal = temporals_table.add(left_id, self.temporal_context, labeledLeftOperandText,
                                                 unlabeledRule="".join(labeled_tree))
+            temporals_set.add(f't{left_id}')
             intermittent_address_three_way_file.add_line_to_txt(added_temporal.move_address(
               labeledOperandText=labeledLeftOperandText,
               current_id=left_id
@@ -925,6 +926,7 @@ class PostOrderVisitor(YalpVisitor):
         if (rightOperandText != labeledRightOperandText):
             current_id += 1
             right_id = current_id
+            temporals_set.add(f't{right_id}')
             added_temporal = temporals_table.add(right_id, self.temporal_context, labeledRightOperandText,
                                                 unlabeledRule="".join(labeled_tree))
             intermittent_address_three_way_file.add_line_to_txt(added_temporal.move_address(
@@ -943,6 +945,7 @@ class PostOrderVisitor(YalpVisitor):
             except:
               labeled_tree = [labeledLeftOperandText, _Text, f't{right_id}']
         
+        temporals_set.add(f't{current_id + 1}')
         added_temporal = temporals_table.add(current_id + 1, self.temporal_context, "".join(labeled_tree),
                                              unlabeledRule=f'{"".join(original_children)}')
 
@@ -1227,7 +1230,7 @@ for line in Lines:
     if (var in line):
       try:
         offset = variables_table.table[var].offset
-        if (("lw" or "sw") in line):
+        if ("lw" in new_line or "sw" in new_line):
           new_line = new_line.replace(var, f'{offset}')
         else:
           new_line = new_line.replace(var, f'GP[{offset}]')
@@ -1237,10 +1240,10 @@ for line in Lines:
   for temp in sorted(temporals_table.table, reverse=True):
     if (temp in line):
       if (temporals_table.getByKey(temp) != None): 
-        if (("lw" or "sw") in line):
-          new_line = new_line.replace(var, f'{offset}')
+        if ("lw" in new_line or "sw" in new_line):
+          new_line = new_line.replace(temp, f'{offset}')
         else:
-          new_line = new_line.replace(var, f'GP[{temporals_table.getByKey(temp).offset}]')
+          new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
 
   address_three_way_file.add_line_to_txt(new_line.rstrip())
 
