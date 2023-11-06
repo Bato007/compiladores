@@ -118,6 +118,14 @@ class TemporalObject(object):
 			text += f'{tab}mflo $t{self._id}\n'
 		
 			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
+		elif (operator == "*"):
+			text += f'{tab}mult {labeled_tree[0]}, {labeled_tree[1]}\n'
+			text += f'{tab}mfhi $t{self._id}\n' # 32 most significant bits
+		
+			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
+		elif (operator == "-"):
+			text += f'{tab}sub $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
+			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
 		else:
 			text += f'{tab}{context}-t{self._id} = {self.intermediaryRule}'
 

@@ -372,6 +372,8 @@ class PostOrderVisitor(YalpVisitor):
     self.functionsTemp = []
     self.loops = []
     self.temporal_context = ''
+    self.lastArg = -1
+    self.freeArgs = []
   
   # This function will update the context of the current visited branch
   def updateContext(self, node):
@@ -387,9 +389,8 @@ class PostOrderVisitor(YalpVisitor):
       self.fun_context = node.getChild(0).getText()
       self.let_id = 0
 
-      if (self.class_context not in unoverloading):
-        intermittent_address_three_way_file.add_line_to_txt(f'   {self.class_context}')
-        original_three_way_file.add_line_to_txt(f'   {self.class_context}')
+      intermittent_address_three_way_file.add_line_to_txt(f'   {self.fun_context}:')
+      original_three_way_file.add_line_to_txt(f'   {self.fun_context}:')
         
 
     if (node_type == YalpParser.LetTenseContext):
@@ -449,8 +450,8 @@ class PostOrderVisitor(YalpVisitor):
   def checkFunctionCall(self, fun_name, full_params, class_name = None, children = [], called_by=None):
     inner_params = []
     class_context = self.class_context if class_name is None else class_name
-    
-    intermittent_address_three_way_file.add_line_to_txt(f'      {fun_name}')
+
+    # intermittent_address_three_way_file.add_line_to_txt(f'\n')
     original_three_way_file.add_line_to_txt(f'      {fun_name}')
     
     def get_correct_context(var_name):
@@ -480,21 +481,46 @@ class PostOrderVisitor(YalpVisitor):
           var_name = f'{self.class_context}-{var_name}'
         elif (self.lastTemp != None and self.lastTemp.unlabeledRule == var_name):
           var_name = f'{self.temporal_context}-t{self.lastTemp._id}'
-        
+
         if (is_not):
           var_name = f'~{var_name}'
         return var_name
 
+
+    if (called_by != None):
+      # Cargamos el tipo
+      if len(self.freeArgs) > 0:
+        self.lastArg = self.freeArgs[0]
+        del self.freeArgs[-1]
+      else:
+        self.lastArg += 1
+      intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(called_by)}($gp)')
+          
+    used_args = []
     for param in children:
       if (not param == ","):
         inner_params.append(param)
-        if (self.lastTemp != None and param == self.lastTemp.intermediaryRule):
-          original_three_way_file.add_line_to_txt(f'            PARAM t{self.lastTemp._id}')
-          intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {self.temporal_context}-t{self.lastTemp._id}')
+        if len(self.freeArgs) > 0:
+          self.lastArg = self.freeArgs[0]
+          del self.freeArgs[-1]
         else:
-          intermittent_address_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
-          original_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
+          self.lastArg += 1
 
+        if (self.lastTemp != None and param == self.lastTemp.intermediaryRule):
+          # Es funcion, igual ocupa un id del lastArg
+          original_three_way_file.add_line_to_txt(f'            PARAM t{self.lastTemp._id}')
+          if ("." in param):
+            intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(param.split(".")[0])}($gp)')
+          
+          intermittent_address_three_way_file.add_line_to_txt(f'      jal {self.class_context}_{param.split(".")[-1].replace("(", "").replace(")", "")}')
+          # Guardamos el resultado por si lo necesitamos
+          # intermittent_address_three_way_file.add_line_to_txt(f'      move ${self.temporal_context}-t{self.lastTemp._id}, $v0')
+        else:
+          original_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
+          intermittent_address_three_way_file.add_line_to_txt(f'      ELSE li $a{self.lastArg}, {get_correct_context(param)}')
+        used_args.append(self.lastArg)
+    
+    self.freeArgs = list(set(self.freeArgs + used_args))
     
     self.temporal_context = f'{self.class_context}-{self.fun_context}'
     if (called_by != None):
@@ -534,7 +560,10 @@ class PostOrderVisitor(YalpVisitor):
     self.lastTemp = added_temporal
     self.functionsTemp.append(current_id)
     original_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
-    intermittent_address_three_way_file.add_line_to_txt(f'            {self.temporal_context}-t{current_id} = CALL {fun_name}')
+    # intermittent_address_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
+    intermittent_address_three_way_file.add_line_to_txt(f'      jal {fun_name}\n')
+    # Guardamos el resultado por si lo necesitamos
+    intermittent_address_three_way_file.add_line_to_txt(f'      move ${self.temporal_context}-t{current_id}, $v0')
 
     param_types = []
     for i in range(0, len(full_params), 2):
@@ -585,6 +614,8 @@ class PostOrderVisitor(YalpVisitor):
       self.loops = []
       self.functionsTemp = []
       self.freeTemps = []
+      self.lastArg = -1
+      self.freeArgs = []
 
     if isinstance(tree, TerminalNode):
       if (tree.getText() in unoverloading): return tree.getText()
@@ -1015,7 +1046,11 @@ class PostOrderVisitor(YalpVisitor):
           temporal_assignment = tree.getText().split("<-")[-1].replace(inner_value, f't{last_function_call_id}')
           self.freeTemps.append(last_function_call_id)
 
-          intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {self.temporal_context}-{temporal_assignment}')
+          if ("new" in temporal_assignment):
+            temporal_assignment = temporal_assignment.replace("new", "")
+            temporal_assignment = temporal_assignment.replace('(', '').replace(')', '')
+            
+          intermittent_address_three_way_file.add_line_to_txt(f'      ENTRA {var_name} = {self.temporal_context}-{temporal_assignment}')
           original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {temporal_assignment}')
         else:
           let_context = None
@@ -1048,7 +1083,10 @@ class PostOrderVisitor(YalpVisitor):
           if (is_not):
             inner_param = f'~{inner_param}'
 
-          intermittent_address_three_way_file.add_line_to_txt(f'      {var_name} = {inner_param}')
+          if ("new" in inner_param):
+            inner_param = inner_param.replace("new", "")
+            inner_param = inner_param.replace('(', '').replace(')', '')
+          intermittent_address_three_way_file.add_line_to_txt(f'      ENTRA {var_name} = {inner_param}')
           original_three_way_file.add_line_to_txt(f'  {tree.getChild(0)} = {inner_param}')
         
 
@@ -1098,6 +1136,14 @@ class PostOrderVisitor(YalpVisitor):
         object_type = tree.getChild(1).getText()
 
         if (classes_table.contains(object_type)):
+          if len(self.freeArgs) > 0:
+            self.lastArg = self.freeArgs[0]
+            del self.freeArgs[-1]
+          else:
+            self.lastArg += 1
+
+          intermittent_address_three_way_file.add_line_to_txt(f'      la $a{self.lastArg}, {tree.getChild(1).getText()}_instance')
+            
           return object_type
 
         print('Type', object_type, 'doesnt exists')

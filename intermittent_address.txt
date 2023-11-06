@@ -1,24 +1,39 @@
+   abort:
+   type_name:
+   out_string:
+   out_int:
+   in_string:
+   in_int:
+   length:
+   concat:
+   substr:
 A
       A-var = 0
-   A
-   A
-      A-var = A-set_var-num
-   A
-   A
+   value:
+   set_var:
+      ENTRA A-var = A-set_var-num
+   method1:
+   method2:
      	lw $t1, A-method2-num1($gp)
      	lw $t2, A-method2-num2($gp)
      	add $t3, $t1, $t2
      	sw $t3, A-method2-t3($gp)
       A-method2-let-1-x = A-method2-t3
-      set_var
-            PARAM A-method2-let-1-x
-            A-method2-t3 = CALL set_var
-   A
-      A-method3-let-1-x = ~A-method3-num
-      set_var
-            PARAM A-method3-let-1-x
-            A-method3-t1 = CALL set_var
-   A
+      la $a0, B_instance
+      lw $a1, (newB)($gp)
+      ELSE li $a2, A-method2-let-1-x
+      jal set_var
+
+      move $A-method2-t3, $v0
+   method3:
+      ENTRA A-method3-let-1-x = ~A-method3-num
+      la $a0, C_instance
+      lw $a1, (newC)($gp)
+      ELSE li $a2, A-method3-let-1-x
+      jal set_var
+
+      move $A-method3-t1, $v0
+   method4:
      	lw $t1, A-method4-num2($gp)
      	lw $t2, A-method4-num1($gp)
      	A-method4-t3 = t1<t2
@@ -27,21 +42,29 @@ A
 	L1
      	lw $t4, A-method4-num1($gp)
      	lw $t5, A-method4-num2($gp)
-     	A-method4-t6 = t4-t5
+     	sub $t6, $t4, $t5
+     	sw $t6, A-method4-t6($gp)
       A-method4-let-2-x = A-method4-t6
-      set_var
-            PARAM A-method4-let-2-x
-            A-method4-t6 = CALL set_var
+      la $a0, D_instance
+      lw $a1, (newD)($gp)
+      ELSE li $a2, A-method4-let-2-x
+      jal set_var
+
+      move $A-method4-t6, $v0
 	L2
      	lw $t7, A-method4-num2($gp)
      	lw $t8, A-method4-num1($gp)
-     	A-method4-t9 = t7-t8
+     	sub $t9, $t7, $t8
+     	sw $t9, A-method4-t9($gp)
       A-method4-let-2-x = A-method4-t9
-      set_var
-            PARAM A-method4-let-2-x
-            A-method4-t9 = CALL set_var
+      la $a2, D_instance
+      lw $a3, (newD)($gp)
+      ELSE li $a4, A-method4-let-2-x
+      jal set_var
+
+      move $A-method4-t9, $v0
 	END_L2
-   A
+   method5:
 	L1
      	lw $t1, A-method5-let-2-y($gp)
      	lw $t2, A-method5-num($gp)
@@ -51,7 +74,9 @@ A
 	L2
      	lw $t4, A-method5-let-1-x($gp)
      	lw $t5, A-method5-let-2-y($gp)
-     	A-method5-t6 = t4*t5
+     	mult $t4, $t5
+     	mfhi $t6
+     	sw $t6, A-method5-t6($gp)
       A-method5-let-1-x = A-method5-t6
      	lw $t6, A-method5-let-2-y($gp)
      	addi $t7, $t6, 1
@@ -60,44 +85,63 @@ A
 	END_L2
 	goto L1
 	END_L1
-      set_var
-            PARAM A-method5-let-1-x
-            A-method5-t7 = CALL set_var
+      la $a0, E_instance
+      lw $a1, (newE)($gp)
+      ELSE li $a2, A-method5-let-1-x
+      jal set_var
+
+      move $A-method5-t7, $v0
 B
-   B
+   method5:
      	lw $t1, B-method5-num($gp)
      	lw $t2, B-method5-num($gp)
-     	B-method5-t3 = t1*t2
+     	mult $t1, $t2
+     	mfhi $t3
+     	sw $t3, B-method5-t3($gp)
       B-method5-let-1-x = B-method5-t3
-      set_var
-            PARAM B-method5-let-1-x
-            B-method5-t3 = CALL set_var
+      la $a0, E_instance
+      lw $a1, (newE)($gp)
+      ELSE li $a2, B-method5-let-1-x
+      jal set_var
+
+      move $B-method5-t3, $v0
 C
-   C
-      C-method6-let-1-x = ~C-method6-num
-      set_var
-            PARAM C-method6-let-1-x
-            C-method6-t1 = CALL set_var
-   C
+   method6:
+      ENTRA C-method6-let-1-x = ~C-method6-num
+      la $a0, A_instance
+      lw $a1, (newA)($gp)
+      ELSE li $a2, C-method6-let-1-x
+      jal set_var
+
+      move $C-method6-t1, $v0
+   method5:
      	lw $t1, C-method5-num($gp)
      	lw $t2, C-method5-num($gp)
-     	C-method5-t3 = t1*t2
+     	mult $t1, $t2
+     	mfhi $t3
+     	sw $t3, C-method5-t3($gp)
      	lw $t4, C-method5-num($gp)
-     	C-method5-t5 = C-method5-t3*t4
+     	mult $num*num, $t4
+     	mfhi $t5
+     	sw $t5, C-method5-t5($gp)
       C-method5-let-1-x = C-method5-t5
-      set_var
-            PARAM C-method5-let-1-x
-            C-method5-t5 = CALL set_var
+      la $a0, E_instance
+      lw $a1, (newE)($gp)
+      ELSE li $a2, C-method5-let-1-x
+      jal set_var
+
+      move $C-method5-t5, $v0
 D
-   D
+   method7:
      	lw $t1, D-method7-let-1-x($gp)
      	D-method7-t2 = t1<0
 	if D-method7-t2 goto L1
 	goto L2
 	L1
-      method7
-            PARAM ~D-method7-let-1-x
-            D-method7-t3 = CALL method7
+      ELSE li $a0, ~D-method7-let-1-x
+      jal method7
+
+      move $D-method7-t3, $v0
 	L2
      	lw $t4, D-method7-let-1-x($gp)
      	D-method7-t5 = 0=t4
@@ -118,38 +162,44 @@ D
 	L7
 	L8
      	lw $t13, D-method7-let-1-x($gp)
-     	D-method7-t14 = t13-3
-      method7
-            PARAM D-method7-t14
-            D-method7-t15 = CALL method7
+     	sub $t14, $t13, 3
+     	sw $t14, D-method7-t14($gp)
+      ELSE li $a0, D-method7-t14
+      jal method7
+
+      move $D-method7-t15, $v0
 	END_L8
 	END_L6
 	END_L4
 	END_L2
 E
-   E
+   method6:
      	lw $t1, E-method6-num($gp)
      	div $t1, 8
      	mflo $t2
      	sw $t2, E-method6-t2($gp)
       E-method6-let-1-x = E-method6-t2
-      set_var
-            PARAM E-method6-let-1-x
-            E-method6-t2 = CALL set_var
+      la $a0, A_instance
+      lw $a1, (newA)($gp)
+      ELSE li $a2, E-method6-let-1-x
+      jal set_var
+
+      move $E-method6-t2, $v0
 Main
       Main-char = String
       Main-avar = A
       Main-a_var = A
       Main-flag = true
-   Main
+   is_even:
      	lw $t1, Main-is_even-let-1-x($gp)
      	Main-is_even-t2 = t1<0
 	if Main-is_even-t2 goto L1
 	goto L2
 	L1
-      is_even
-            PARAM ~Main-is_even-let-1-x
-            Main-is_even-t3 = CALL is_even
+      ELSE li $a0, ~Main-is_even-let-1-x
+      jal is_even
+
+      move $Main-is_even-t3, $v0
 	L2
      	lw $t4, Main-is_even-let-1-x($gp)
      	Main-is_even-t5 = 0=t4
@@ -164,126 +214,210 @@ Main
 	L5
 	L6
      	lw $t10, Main-is_even-let-1-x($gp)
-     	Main-is_even-t11 = t10-2
-      is_even
-            PARAM Main-is_even-t11
-            Main-is_even-t12 = CALL is_even
+     	sub $t11, $t10, 2
+     	sw $t11, Main-is_even-t11($gp)
+      ELSE li $a0, Main-is_even-t11
+      jal is_even
+
+      move $Main-is_even-t12, $v0
 	END_L6
 	END_L4
 	END_L2
-   Main
-      Main-avar = (newA)
-      set_var
-            PARAM 2
-            Main-main-t1 = CALL set_var
-      value
-            Main-main-t2 = CALL value
-      out_int
-            PARAM Main-main-t2
-            Main-main-t3 = CALL out_int
-      value
-            Main-main-t4 = CALL value
-      is_even
-            PARAM Main-main-t4
-            Main-main-t5 = CALL is_even
+   main:
+      la $a0, A_instance
+      ENTRA Main-avar = A
+      lw $a1, Main-avar($gp)
+      ELSE li $a2, 2
+      jal set_var
+
+      move $Main-main-t1, $v0
+      lw $a2, Main-avar($gp)
+      jal value
+
+      move $Main-main-t2, $v0
+      lw $a3, Main-avar($gp)
+      jal Main_value
+      jal out_int
+
+      move $Main-main-t3, $v0
+      lw $a3, Main-avar($gp)
+      jal value
+
+      move $Main-main-t4, $v0
+      lw $a4, Main-avar($gp)
+      jal Main_value
+      jal is_even
+
+      move $Main-main-t5, $v0
 	if Main-main-t5 goto L1
 	goto L2
 	L1
-      out_string
-            PARAM " es par!\n"
-            Main-main-t6 = CALL out_string
+      ELSE li $a4, " es par!\n"
+      jal out_string
+
+      move $Main-main-t6, $v0
 	L2
-      out_string
-            PARAM " es impar!\n"
-            Main-main-t7 = CALL out_string
+      ELSE li $a4, " es impar!\n"
+      jal out_string
+
+      move $Main-main-t7, $v0
 	END_L2
-      set_var
-            PARAM 3
-            Main-main-t8 = CALL set_var
-      Main-a_var = Main-main-t8
-      value
-            Main-main-t8 = CALL value
-      value
-            Main-main-t9 = CALL value
-      method2
-            PARAM avar.value()
-            PARAM Main-main-t9
-            Main-main-t10 = CALL method2
-      Main-avar = Main-main-t10
-      value
-            Main-main-t10 = CALL value
-      out_int
-            PARAM Main-main-t10
-            Main-main-t11 = CALL out_int
-      out_string
-            PARAM "\n"
-            Main-main-t12 = CALL out_string
-      value
-            Main-main-t13 = CALL value
-      method6
-            PARAM Main-main-t13
-            Main-main-t14 = CALL method6
-      Main-avar = Main-main-t14
-      value
-            Main-main-t14 = CALL value
-      out_int
-            PARAM Main-main-t14
-            Main-main-t15 = CALL out_int
-      out_string
-            PARAM "\n"
-            Main-main-t16 = CALL out_string
-      set_var
-            PARAM 5
-            Main-main-t17 = CALL set_var
-      Main-a_var = Main-main-t17
-      value
-            Main-main-t17 = CALL value
-      value
-            Main-main-t18 = CALL value
-      method4
-            PARAM avar.value()
-            PARAM Main-main-t18
-            Main-main-t19 = CALL method4
-      Main-avar = Main-main-t19
-      value
-            Main-main-t19 = CALL value
-      out_int
-            PARAM Main-main-t19
-            Main-main-t20 = CALL out_int
-      out_string
-            PARAM "\n"
-            Main-main-t21 = CALL out_string
-      set_var
-            PARAM 5
-            Main-main-t22 = CALL set_var
-      value
-            Main-main-t23 = CALL value
-      method5
-            PARAM Main-main-t23
-            Main-main-t24 = CALL method5
-      Main-avar = Main-main-(newC)@t24
-      value
-            Main-main-t24 = CALL value
-      out_int
-            PARAM Main-main-t24
-            Main-main-t25 = CALL out_int
-      out_string
-            PARAM "\n"
-            Main-main-t26 = CALL out_string
-      set_var
-            PARAM 6
-            Main-main-t27 = CALL set_var
-      value
-            Main-main-t28 = CALL value
-      method5
-            PARAM Main-main-t28
-            Main-main-t29 = CALL method5
-      Main-avar = Main-main-(newC)@t29
-      value
-            Main-main-t29 = CALL value
-      out_int
-            PARAM Main-main-t29
-            Main-main-t30 = CALL out_int
-      out_string
-            PARAM "\n"
-            Main-main-t31 = CALL out_string
+      la $a4, A_instance
+      lw $a5, (newA)($gp)
+      ELSE li $a6, 3
+      jal set_var
+
+      move $Main-main-t8, $v0
+      ENTRA Main-a_var = Main-main-t8
+      la $a6, B_instance
+      lw $a7, Main-avar($gp)
+      jal value
+
+      move $Main-main-t8, $v0
+      lw $a8, Main-a_var($gp)
+      jal value
+
+      move $Main-main-t9, $v0
+      lw $a9, (newB)($gp)
+      ELSE li $a10, avar.value()
+      lw $a11, Main-a_var($gp)
+      jal Main_value
+      jal method2
+
+      move $Main-main-t10, $v0
+      ENTRA Main-avar = Main-main-t10
+      lw $a10, Main-avar($gp)
+      jal value
+
+      move $Main-main-t10, $v0
+      lw $a10, Main-avar($gp)
+      jal Main_value
+      jal out_int
+
+      move $Main-main-t11, $v0
+      ELSE li $a10, "\n"
+      jal out_string
+
+      move $Main-main-t12, $v0
+      la $a10, C_instance
+      lw $a11, Main-avar($gp)
+      jal value
+
+      move $Main-main-t13, $v0
+      lw $a12, (newC)($gp)
+      lw $a13, Main-avar($gp)
+      jal Main_value
+      jal method6
+
+      move $Main-main-t14, $v0
+      ENTRA Main-avar = Main-main-t14
+      lw $a13, Main-avar($gp)
+      jal value
+
+      move $Main-main-t14, $v0
+      lw $a14, Main-avar($gp)
+      jal Main_value
+      jal out_int
+
+      move $Main-main-t15, $v0
+      ELSE li $a14, "\n"
+      jal out_string
+
+      move $Main-main-t16, $v0
+      la $a14, A_instance
+      lw $a15, (newA)($gp)
+      ELSE li $a16, 5
+      jal set_var
+
+      move $Main-main-t17, $v0
+      ENTRA Main-a_var = Main-main-t17
+      la $a16, D_instance
+      lw $a17, Main-avar($gp)
+      jal value
+
+      move $Main-main-t17, $v0
+      lw $a18, Main-a_var($gp)
+      jal value
+
+      move $Main-main-t18, $v0
+      lw $a19, (newD)($gp)
+      ELSE li $a20, avar.value()
+      lw $a21, Main-a_var($gp)
+      jal Main_value
+      jal method4
+
+      move $Main-main-t19, $v0
+      ENTRA Main-avar = Main-main-t19
+      lw $a20, Main-avar($gp)
+      jal value
+
+      move $Main-main-t19, $v0
+      lw $a20, Main-avar($gp)
+      jal Main_value
+      jal out_int
+
+      move $Main-main-t20, $v0
+      ELSE li $a20, "\n"
+      jal out_string
+
+      move $Main-main-t21, $v0
+      lw $a20, Main-avar($gp)
+      ELSE li $a21, 5
+      jal set_var
+
+      move $Main-main-t22, $v0
+      la $a21, C_instance
+      lw $a22, Main-avar($gp)
+      jal value
+
+      move $Main-main-t23, $v0
+      lw $a23, A($gp)
+      lw $a24, Main-avar($gp)
+      jal Main_value
+      jal method5
+
+      move $Main-main-t24, $v0
+      ENTRA Main-avar = Main-main-C@t24
+      lw $a24, Main-avar($gp)
+      jal value
+
+      move $Main-main-t24, $v0
+      lw $a25, Main-avar($gp)
+      jal Main_value
+      jal out_int
+
+      move $Main-main-t25, $v0
+      ELSE li $a25, "\n"
+      jal out_string
+
+      move $Main-main-t26, $v0
+      lw $a25, Main-avar($gp)
+      ELSE li $a26, 6
+      jal set_var
+
+      move $Main-main-t27, $v0
+      la $a26, C_instance
+      lw $a27, Main-avar($gp)
+      jal value
+
+      move $Main-main-t28, $v0
+      lw $a28, B($gp)
+      lw $a29, Main-avar($gp)
+      jal Main_value
+      jal method5
+
+      move $Main-main-t29, $v0
+      ENTRA Main-avar = Main-main-C@t29
+      lw $a29, Main-avar($gp)
+      jal value
+
+      move $Main-main-t29, $v0
+      lw $a30, Main-avar($gp)
+      jal Main_value
+      jal out_int
+
+      move $Main-main-t30, $v0
+      ELSE li $a30, "\n"
+      jal out_string
+
+      move $Main-main-t31, $v0

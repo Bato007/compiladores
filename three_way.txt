@@ -1,21 +1,30 @@
+   abort:
+   type_name:
+   out_string:
+   out_int:
+   in_string:
+   in_int:
+   length:
+   concat:
+   substr:
 A
 	var = 0
-   A
-   A
+   value:
+   set_var:
   var = A-set_var-num
-   A
-   A
+   method1:
+   method2:
      	t3 = t1+t2
 	x = t3
       set_var
             PARAM A-method2-let-1-x
             t3 = CALL set_var
-   A
+   method3:
   x = ~A-method3-num
       set_var
             PARAM A-method3-let-1-x
             t1 = CALL set_var
-   A
+   method4:
      	t3 = t1<t2
 	if A-method4-t3 goto L1
 	goto L2
@@ -32,7 +41,7 @@ A
             PARAM A-method4-let-2-x
             t9 = CALL set_var
 	END_L2
-   A
+   method5:
 	L1
      	t3 = t1<=t2
 	if A-method5-t3 goto L2
@@ -49,19 +58,19 @@ A
             PARAM A-method5-let-1-x
             t7 = CALL set_var
 B
-   B
+   method5:
      	t3 = t1*t2
 	x = t3
       set_var
             PARAM B-method5-let-1-x
             t3 = CALL set_var
 C
-   C
+   method6:
   x = ~C-method6-num
       set_var
             PARAM C-method6-let-1-x
             t1 = CALL set_var
-   C
+   method5:
      	t3 = t1*t2
      	t5 = C-method5-t3*t4
 	x = t5
@@ -69,7 +78,7 @@ C
             PARAM C-method5-let-1-x
             t5 = CALL set_var
 D
-   D
+   method7:
      	t2 = t1<0
 	if D-method7-t2 goto L1
 	goto L2
@@ -105,7 +114,7 @@ D
 	END_L4
 	END_L2
 E
-   E
+   method6:
      	t2 = t1/8
 	x = t2
       set_var
@@ -116,7 +125,7 @@ Main
 	avar = A
 	a_var = A
 	flag = true
-   Main
+   is_even:
      	t2 = t1<0
 	if Main-is_even-t2 goto L1
 	goto L2
@@ -144,8 +153,8 @@ Main
 	END_L6
 	END_L4
 	END_L2
-   Main
-  avar = (newA)
+   main:
+  avar = A
       set_var
             PARAM 2
             t1 = CALL set_var
@@ -234,7 +243,7 @@ Main
       method5
             PARAM t23
             t24 = CALL method5
-	avar = (newC)@t24
+	avar = C@t24
       value
             t24 = CALL value
       out_int
@@ -251,7 +260,7 @@ Main
       method5
             PARAM t28
             t29 = CALL method5
-	avar = (newC)@t29
+	avar = C@t29
       value
             t29 = CALL value
       out_int

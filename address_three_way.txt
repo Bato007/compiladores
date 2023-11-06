@@ -1,289 +1,423 @@
+   abort:
+   type_name:
+   out_string:
+   out_int:
+   in_string:
+   in_int:
+   length:
+   concat:
+   substr:
 A
       GP[0] = 0
-   A
-   A
-      GP[0] = GP[8]
-   A
-   A
+   value:
+   set_var:
+      ENTRA GP[0] = GP[8]
+   method1:
+   method2:
      	lw $t1, 8($gp)
      	lw $t2, 12($gp)
      	add $t3, $t1, $t2
      	sw $t3, 12($gp)
-      GP[8] = GP[867]
-      set_var
-            PARAM GP[8]
-            GP[867] = CALL set_var
-   A
-      GP[8] = ~GP[8]
-      set_var
-            PARAM GP[8]
-            GP[783] = CALL set_var
-   A
+      GP[8] = GP[875]
+      la $a0, B_instance
+      lw $a1, (newB)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[875], $v0
+   method3:
+      ENTRA GP[8] = ~GP[8]
+      la $a0, C_instance
+      lw $a1, (newC)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[823], $v0
+   method4:
      	lw $t1, 12($gp)
      	lw $t2, 8($gp)
-     	GP[867] = t1<t2
-	if GP[867] goto L1
+     	GP[875] = t1<t2
+	if GP[875] goto L1
 	goto L2
 	L1
      	lw $t4, 8($gp)
      	lw $t5, 12($gp)
-     	GP[843] = t4-t5
-      GP[8] = GP[843]
-      set_var
-            PARAM GP[8]
-            GP[843] = CALL set_var
+     	sub $t6, $t4, $t5
+     	sw $t6, 12($gp)
+      GP[8] = GP[811]
+      la $a0, D_instance
+      lw $a1, (newD)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[811], $v0
 	L2
      	lw $t7, 12($gp)
      	lw $t8, 8($gp)
-     	GP[887] = t7-t8
-      GP[8] = GP[887]
-      set_var
-            PARAM GP[8]
-            GP[887] = CALL set_var
+     	sub $t9, $t7, $t8
+     	sw $t9, 8($gp)
+      GP[8] = GP[879]
+      la $a2, D_instance
+      lw $a3, (newD)($gp)
+      ELSE li $a4, GP[8]
+      jal set_var
+
+      move $GP[879], $v0
 	END_L2
-   A
+   method5:
 	L1
      	lw $t1, 8($gp)
      	lw $t2, 8($gp)
-     	GP[867] = t1<=t2
-	if GP[867] goto L2
+     	GP[875] = t1<=t2
+	if GP[875] goto L2
 	goto END_L1
 	L2
      	lw $t4, 8($gp)
      	lw $t5, 8($gp)
-     	GP[843] = t4*t5
-      GP[8] = GP[843]
+     	mult $t4, $t5
+     	mfhi $t6
+     	sw $t6, 8($gp)
+      GP[8] = GP[811]
      	lw $t6, 8($gp)
      	addi $t7, $t6, 1
      	sw $t7, 8($gp)
-      GP[8] = GP[815]
+      GP[8] = GP[843]
 	END_L2
 	goto L1
 	END_L1
-      set_var
-            PARAM GP[8]
-            GP[815] = CALL set_var
+      la $a0, E_instance
+      lw $a1, (newE)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[843], $v0
 B
-   B
+   method5:
      	lw $t1, 8($gp)
      	lw $t2, 8($gp)
-     	GP[867] = t1*t2
-      GP[8] = GP[867]
-      set_var
-            PARAM GP[8]
-            GP[867] = CALL set_var
+     	mult $t1, $t2
+     	mfhi $t3
+     	sw $t3, 8($gp)
+      GP[8] = GP[875]
+      la $a0, E_instance
+      lw $a1, (newE)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[875], $v0
 C
-   C
-      GP[8] = ~GP[8]
-      set_var
-            PARAM GP[8]
-            GP[783] = CALL set_var
-   C
+   method6:
+      ENTRA GP[8] = ~GP[8]
+      la $a0, A_instance
+      lw $a1, (newA)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[823], $v0
+   method5:
      	lw $t1, 8($gp)
      	lw $t2, 8($gp)
-     	GP[867] = t1*t2
+     	mult $t1, $t2
+     	mfhi $t3
+     	sw $t3, 8($gp)
      	lw $t4, 8($gp)
-     	GP[879] = GP[867]*t4
-      GP[8] = GP[879]
-      set_var
-            PARAM GP[8]
-            GP[879] = CALL set_var
+     	mult $num*num, $t4
+     	mfhi $t5
+     	sw $t5, 8($gp)
+      GP[8] = GP[799]
+      la $a0, E_instance
+      lw $a1, (newE)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[799], $v0
 D
-   D
+   method7:
      	lw $t1, 8($gp)
-     	GP[787] = t1<0
-	if GP[787] goto L1
+     	GP[887] = t1<0
+	if GP[887] goto L1
 	goto L2
 	L1
-      method7
-            PARAM ~GP[8]
-            GP[867] = CALL method7
+      ELSE li $a0, ~GP[8]
+      jal method7
+
+      move $GP[875], $v0
 	L2
      	lw $t4, 8($gp)
-     	GP[879] = 0=t4
-	if GP[843] goto L3
+     	GP[799] = 0=t4
+	if GP[811] goto L3
 	goto L4
 	L3
 	L4
      	lw $t7, 8($gp)
-     	GP[851] = 1=t7
-	if GP[887] goto L5
+     	GP[819] = 1=t7
+	if GP[879] goto L5
 	goto L6
 	L5
 	L6
      	lw $t10, 8($gp)
-     	GP[875] = 2=t10
-	if GP[835] goto L7
+     	GP[871] = 2=t10
+	if GP[803] goto L7
 	goto L8
 	L7
 	L8
      	lw $t13, 8($gp)
-     	GP[807] = t13-3
-      method7
-            PARAM GP[807]
-            GP[823] = CALL method7
+     	sub $t14, $t13, 3
+     	sw $t14, 8($gp)
+      ELSE li $a0, GP[779]
+      jal method7
+
+      move $GP[859], $v0
 	END_L8
 	END_L6
 	END_L4
 	END_L2
 E
-   E
+   method6:
      	lw $t1, 8($gp)
      	div $t1, 8
      	mflo $t2
      	sw $t2, 8($gp)
-      GP[8] = GP[787]
-      set_var
-            PARAM GP[8]
-            GP[787] = CALL set_var
+      GP[8] = GP[887]
+      la $a0, A_instance
+      lw $a1, (newA)($gp)
+      ELSE li $a2, GP[8]
+      jal set_var
+
+      move $GP[887], $v0
 Main
       GP[0] = String
       GP[16] = A
       GP[176] = A
       GP[336] = true
-   Main
+   is_even:
      	lw $t1, 8($gp)
-     	GP[787] = t1<0
-	if GP[787] goto L1
+     	GP[887] = t1<0
+	if GP[887] goto L1
 	goto L2
 	L1
-      is_even
-            PARAM ~GP[8]
-            GP[867] = CALL is_even
+      ELSE li $a0, ~GP[8]
+      jal is_even
+
+      move $GP[875], $v0
 	L2
      	lw $t4, 8($gp)
-     	GP[879] = 0=t4
-	if GP[843] goto L3
+     	GP[799] = 0=t4
+	if GP[811] goto L3
 	goto L4
 	L3
 	L4
      	lw $t7, 8($gp)
-     	GP[851] = 1=t7
-	if GP[887] goto L5
+     	GP[819] = 1=t7
+	if GP[879] goto L5
 	goto L6
 	L5
 	L6
      	lw $t10, 8($gp)
-     	GP[875] = t10-2
-      is_even
-            PARAM GP[875]
-            GP[835] = CALL is_even
+     	sub $t11, $t10, 2
+     	sw $t11, 8($gp)
+      ELSE li $a0, GP[871]
+      jal is_even
+
+      move $GP[803], $v0
 	END_L6
 	END_L4
 	END_L2
-   Main
-      GP[16] = (newA)
-      set_var
-            PARAM 2
-            GP[783] = CALL set_var
-      value
-            GP[787] = CALL value
-      out_int
-            PARAM GP[787]
-            GP[867] = CALL out_int
-      value
-            GP[859] = CALL value
-      is_even
-            PARAM GP[859]
-            GP[879] = CALL is_even
-	if GP[879] goto L1
+   main:
+      la $a0, A_instance
+      ENTRA GP[16] = A
+      lw $a1, 16($gp)
+      ELSE li $a2, 2
+      jal set_var
+
+      move $GP[823], $v0
+      lw $a2, 16($gp)
+      jal value
+
+      move $GP[887], $v0
+      lw $a3, 16($gp)
+      jal Main_value
+      jal out_int
+
+      move $GP[875], $v0
+      lw $a3, 16($gp)
+      jal value
+
+      move $GP[847], $v0
+      lw $a4, 16($gp)
+      jal Main_value
+      jal is_even
+
+      move $GP[799], $v0
+	if GP[799] goto L1
 	goto L2
 	L1
-      out_string
-            PARAM " es par!\n"
-            GP[843] = CALL out_string
+      ELSE li $a4, " es par!\n"
+      jal out_string
+
+      move $GP[811], $v0
 	L2
-      out_string
-            PARAM " es impar!\n"
-            GP[815] = CALL out_string
+      ELSE li $a4, " es impar!\n"
+      jal out_string
+
+      move $GP[843], $v0
 	END_L2
-      set_var
-            PARAM 3
-            GP[851] = CALL set_var
-      GP[176] = GP[851]
-      value
-            GP[851] = CALL value
-      value
-            GP[887] = CALL value
-      method2
-            PARAM avar.value()
-            PARAM GP[887]
-            GP[803] = CALL method2
-      GP[16] = GP[803]
-      value
-            GP[803] = CALL value
-      out_int
-            PARAM GP[803]
-            GP[875] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[835] = CALL out_string
-      value
-            GP[827] = CALL value
-      method6
-            PARAM GP[827]
-            GP[807] = CALL method6
-      GP[16] = GP[807]
-      value
-            GP[807] = CALL value
-      out_int
-            PARAM GP[807]
-            GP[823] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[791] = CALL out_string
-      set_var
-            PARAM 5
-            GP[863] = CALL set_var
-      GP[176] = GP[863]
-      value
-            GP[863] = CALL value
-      value
-            GP[799] = CALL value
-      method4
-            PARAM avar.value()
-            PARAM GP[799]
-            GP[895] = CALL method4
-      GP[16] = GP[895]
-      value
-            GP[895] = CALL value
-      out_int
-            PARAM GP[895]
-            GP[847] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[883] = CALL out_string
-      set_var
-            PARAM 5
-            GP[779] = CALL set_var
-      value
-            GP[811] = CALL value
-      method5
-            PARAM GP[811]
-            GP[871] = CALL method5
-      GP[16] = Main-main-(newC)@t24
-      value
-            GP[871] = CALL value
-      out_int
-            PARAM GP[871]
-            GP[775] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[819] = CALL out_string
-      set_var
-            PARAM 6
-            GP[839] = CALL set_var
-      value
-            GP[831] = CALL value
-      method5
-            PARAM GP[831]
-            GP[855] = CALL method5
-      GP[16] = Main-main-(newC)@t29
-      value
-            GP[855] = CALL value
-      out_int
-            PARAM GP[855]
-            GP[891] = CALL out_int
-      out_string
-            PARAM "\n"
-            GP[795] = CALL out_string
+      la $a4, A_instance
+      lw $a5, (newA)($gp)
+      ELSE li $a6, 3
+      jal set_var
+
+      move $GP[819], $v0
+      ENTRA GP[176] = GP[819]
+      la $a6, B_instance
+      lw $a7, 16($gp)
+      jal value
+
+      move $GP[819], $v0
+      lw $a8, 176($gp)
+      jal value
+
+      move $GP[879], $v0
+      lw $a9, (newB)($gp)
+      ELSE li $a10, avar.value()
+      lw $a11, 176($gp)
+      jal Main_value
+      jal method2
+
+      move $GP[815], $v0
+      ENTRA GP[16] = GP[815]
+      lw $a10, 16($gp)
+      jal value
+
+      move $GP[815], $v0
+      lw $a10, 16($gp)
+      jal Main_value
+      jal out_int
+
+      move $GP[871], $v0
+      ELSE li $a10, "\n"
+      jal out_string
+
+      move $GP[803], $v0
+      la $a10, C_instance
+      lw $a11, 16($gp)
+      jal value
+
+      move $GP[787], $v0
+      lw $a12, (newC)($gp)
+      lw $a13, 16($gp)
+      jal Main_value
+      jal method6
+
+      move $GP[779], $v0
+      ENTRA GP[16] = GP[779]
+      lw $a13, 16($gp)
+      jal value
+
+      move $GP[779], $v0
+      lw $a14, 16($gp)
+      jal Main_value
+      jal out_int
+
+      move $GP[859], $v0
+      ELSE li $a14, "\n"
+      jal out_string
+
+      move $GP[895], $v0
+      la $a14, A_instance
+      lw $a15, (newA)($gp)
+      ELSE li $a16, 5
+      jal set_var
+
+      move $GP[863], $v0
+      ENTRA GP[176] = GP[863]
+      la $a16, D_instance
+      lw $a17, 16($gp)
+      jal value
+
+      move $GP[863], $v0
+      lw $a18, 176($gp)
+      jal value
+
+      move $GP[807], $v0
+      lw $a19, (newD)($gp)
+      ELSE li $a20, avar.value()
+      lw $a21, 176($gp)
+      jal Main_value
+      jal method4
+
+      move $GP[775], $v0
+      ENTRA GP[16] = GP[775]
+      lw $a20, 16($gp)
+      jal value
+
+      move $GP[775], $v0
+      lw $a20, 16($gp)
+      jal Main_value
+      jal out_int
+
+      move $GP[839], $v0
+      ELSE li $a20, "\n"
+      jal out_string
+
+      move $GP[891], $v0
+      lw $a20, 16($gp)
+      ELSE li $a21, 5
+      jal set_var
+
+      move $GP[783], $v0
+      la $a21, C_instance
+      lw $a22, 16($gp)
+      jal value
+
+      move $GP[867], $v0
+      lw $a23, A($gp)
+      lw $a24, 16($gp)
+      jal Main_value
+      jal method5
+
+      move $GP[883], $v0
+      ENTRA GP[16] = Main-main-C@t24
+      lw $a24, 16($gp)
+      jal value
+
+      move $GP[883], $v0
+      lw $a25, 16($gp)
+      jal Main_value
+      jal out_int
+
+      move $GP[855], $v0
+      ELSE li $a25, "\n"
+      jal out_string
+
+      move $GP[835], $v0
+      lw $a25, 16($gp)
+      ELSE li $a26, 6
+      jal set_var
+
+      move $GP[795], $v0
+      la $a26, C_instance
+      lw $a27, 16($gp)
+      jal value
+
+      move $GP[827], $v0
+      lw $a28, B($gp)
+      lw $a29, 16($gp)
+      jal Main_value
+      jal method5
+
+      move $GP[791], $v0
+      ENTRA GP[16] = Main-main-C@t29
+      lw $a29, 16($gp)
+      jal value
+
+      move $GP[791], $v0
+      lw $a30, 16($gp)
+      jal Main_value
+      jal out_int
+
+      move $GP[831], $v0
+      ELSE li $a30, "\n"
+      jal out_string
+
+      move $GP[851], $v0
