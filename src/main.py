@@ -9,6 +9,7 @@ from grammar.YalpVisitor import YalpVisitor
 from file import CreateFile
 
 from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, BASE_SIZES
+from utils import return_correct_mips
 
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
@@ -19,6 +20,7 @@ classes_table = ClassesTable()
 variables_table = VariablesTable()
 functions_table = FunctionsTable()
 temporals_table = TemporalsTable()
+extracted_strings = {}
 
 original_three_way_file = CreateFile("three_way.txt")
 intermittent_address_three_way_file = CreateFile("intermittent_address.txt")
@@ -121,6 +123,7 @@ class TypeCollectorVisitor(YalpVisitor):
 
   # Visit a parse tree produced by YalpParser#string.
   def visitString(self, ctx:YalpParser.StringContext):
+    extracted_strings[f'string{len(extracted_strings) + 1}'] = ctx.getText()
     self.types[ctx.getText()] = 'String'
     return self.visitChildren(ctx)
 
@@ -381,16 +384,23 @@ class PostOrderVisitor(YalpVisitor):
     if (node_type == YalpParser.R_classContext):
       self.class_context = node.getChild(1).getText()
 
-      if (self.class_context not in unoverloading):
-        intermittent_address_three_way_file.add_line_to_txt(f'{self.class_context}')
-        original_three_way_file.add_line_to_txt(f'{self.class_context}')
+      # if (self.class_context not in unoverloading):
+      #   intermittent_address_three_way_file.add_line_to_txt(f'{self.class_context}')
+      #   original_three_way_file.add_line_to_txt(f'{self.class_context}')
       
     if (node_type == YalpParser.FunDeclarationContext):
       self.fun_context = node.getChild(0).getText()
       self.let_id = 0
 
-      intermittent_address_three_way_file.add_line_to_txt(f'   {self.fun_context}:')
-      original_three_way_file.add_line_to_txt(f'   {self.fun_context}:')
+      intermittent_address_three_way_file.add_line_to_txt(f'{self.fun_context}:')
+
+      if (self.fun_context == "out_string"):
+        intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, 4')
+        intermittent_address_three_way_file.add_line_to_txt(f'      la $t0, 0($a0)')
+        intermittent_address_three_way_file.add_line_to_txt(f'      syscall')
+        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
+    
+      original_three_way_file.add_line_to_txt(f'{self.fun_context}:')
         
 
     if (node_type == YalpParser.LetTenseContext):
@@ -453,7 +463,7 @@ class PostOrderVisitor(YalpVisitor):
 
     # intermittent_address_three_way_file.add_line_to_txt(f'\n')
     original_three_way_file.add_line_to_txt(f'      {fun_name}')
-    
+  
     def get_correct_context(var_name):
         is_not = False
         if (var_name[0] == "~"):
@@ -517,7 +527,7 @@ class PostOrderVisitor(YalpVisitor):
           # intermittent_address_three_way_file.add_line_to_txt(f'      move ${self.temporal_context}-t{self.lastTemp._id}, $v0')
         else:
           original_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
-          intermittent_address_three_way_file.add_line_to_txt(f'      ELSE li $a{self.lastArg}, {get_correct_context(param)}')
+          intermittent_address_three_way_file.add_line_to_txt(f'      la $a{self.lastArg}, {get_correct_context(param)}')
         used_args.append(self.lastArg)
     
     self.freeArgs = list(set(self.freeArgs + used_args))
@@ -563,7 +573,8 @@ class PostOrderVisitor(YalpVisitor):
     # intermittent_address_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
     intermittent_address_three_way_file.add_line_to_txt(f'      jal {fun_name}\n')
     # Guardamos el resultado por si lo necesitamos
-    intermittent_address_three_way_file.add_line_to_txt(f'      move ${self.temporal_context}-t{current_id}, $v0')
+    intermittent_address_three_way_file.add_line_to_txt(f'      la $a0, {self.temporal_context}-t{current_id}')
+    intermittent_address_three_way_file.add_line_to_txt(f'      sw $v0, {self.temporal_context}-t{current_id}($a0)')
 
     param_types = []
     for i in range(0, len(full_params), 2):
@@ -1269,29 +1280,45 @@ intermittent_address_three_way_file.close_txt_file()
 file1 = open('intermittent_address.txt', 'r')
 Lines = file1.readlines()
 
+address_three_way_file.add_line_to_txt(".data")
+for extracted_string in extracted_strings:
+  address_three_way_file.add_line_to_txt(f'   {extracted_string}: .asciiz {extracted_strings[extracted_string]}')
+
+for var in variables_table.table:
+  address_three_way_file.add_line_to_txt(f'   {var.replace("-", "_")}: .word  {variables_table.table[var].offset}')
+
+for temp in sorted(temporals_table.table, reverse=True):
+  address_three_way_file.add_line_to_txt(f'   {temp.replace("-", "_")}: .word  {temporals_table.table[temp].offset}')
+
+address_three_way_file.add_line_to_txt(".text")
+address_three_way_file.add_line_to_txt(f'   .globl main')
+
+main_content_lines = []
+found_main = False
 # Strips the newline character
 for line in Lines:
-  new_line = line
-  for var in variables_table.table:
-    if (var in line):
-      try:
-        offset = variables_table.table[var].offset
-        if ("lw" in new_line or "sw" in new_line):
-          new_line = new_line.replace(var, f'{offset}')
-        else:
-          new_line = new_line.replace(var, f'GP[{offset}]')
-      except:
-        pass
-  
-  for temp in sorted(temporals_table.table, reverse=True):
-    if (temp in line):
-      if (temporals_table.getByKey(temp) != None): 
-        if ("lw" in new_line or "sw" in new_line):
-          new_line = new_line.replace(temp, f'{offset}')
-        else:
-          new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
+  if found_main and ':' not in line:
+      main_content_lines.append(line)
+  elif line.startswith('main:'):
+      main_content_lines.append(line)
+      found_main = True
 
-  address_three_way_file.add_line_to_txt(new_line.rstrip())
+
+for line in main_content_lines:
+    new_line = return_correct_mips(variables_table, temporals_table, extracted_strings, line)
+    address_three_way_file.add_line_to_txt(new_line)
+# Exit program
+address_three_way_file.add_line_to_txt("      li $v0, 10")
+address_three_way_file.add_line_to_txt("      syscall")
+
+found_main = 0
+for line in Lines:
+  new_line = return_correct_mips(variables_table, temporals_table, extracted_strings, line)
+  if new_line.startswith('main:'):
+    break
+
+  address_three_way_file.add_line_to_txt(new_line)
+
 
 # print(functions_table)
 # print(absolute_offset, class_table_size)
