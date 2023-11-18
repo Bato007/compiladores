@@ -90,7 +90,7 @@ class TemporalObject(object):
 					labeledOperandText,
 					tab="     	"):
 		
-		return f'{tab}lw $t{current_id}, {labeledOperandText}($gp)'
+		return f'{tab}la $a0, {labeledOperandText}\n{tab}lw $t{current_id}, {labeledOperandText}($a0)'
 
 	def three_way_print_context(self, 
 							 context, 

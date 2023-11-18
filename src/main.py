@@ -11,6 +11,8 @@ from file import CreateFile
 from tables import ClassesTable, VariablesTable, LoopObject, FunctionsTable, TemporalsTable, BASE_SIZES
 from utils import return_correct_mips
 
+import os
+
 entry_file = 'class.txt'
 input_string = resolveEntryPoint(entry_file)
 
@@ -1319,7 +1321,12 @@ for line in Lines:
 
   address_three_way_file.add_line_to_txt(new_line)
 
+file1.close()
+original_three_way_file.close_txt_file()
+address_three_way_file.close_txt_file()
 
+os.remove("three_way.txt")
+os.remove("intermittent_address.txt")
 # print(functions_table)
 # print(absolute_offset, class_table_size)
 # print(variables_table)
