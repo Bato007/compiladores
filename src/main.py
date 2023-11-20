@@ -406,7 +406,35 @@ class PostOrderVisitor(YalpVisitor):
         intermittent_address_three_way_file.add_line_to_txt(f'      move $a0, $t0')
         intermittent_address_three_way_file.add_line_to_txt(f'      syscall')
         intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
-    
+      elif (self.fun_context == "substr"):
+        intermittent_address_three_way_file.add_line_to_txt(f'      bge $a1, $a0, swap_values')
+        intermittent_address_three_way_file.add_line_to_txt(f'      j continue')
+        intermittent_address_three_way_file.add_line_to_txt(f'      swap_values:')
+        intermittent_address_three_way_file.add_line_to_txt(f'             move $a2, $a0')
+        intermittent_address_three_way_file.add_line_to_txt(f'             move $a0, $a1')
+        intermittent_address_three_way_file.add_line_to_txt(f'             move $a1, $a2')
+
+        intermittent_address_three_way_file.add_line_to_txt(f'      continue:')
+        intermittent_address_three_way_file.add_line_to_txt(f'      la $s0, string')
+        intermittent_address_three_way_file.add_line_to_txt(f'      la $s1, destination_string')
+        intermittent_address_three_way_file.add_line_to_txt(f'      copy_loop:')
+        intermittent_address_three_way_file.add_line_to_txt(f'            lb $t2, 0($s0)')
+        intermittent_address_three_way_file.add_line_to_txt(f'            sb $t2, 0($s1)')
+        intermittent_address_three_way_file.add_line_to_txt(f'            addi $s0, $s0, 1')
+        intermittent_address_three_way_file.add_line_to_txt(f'            addi $s1, $s1, 1')
+        intermittent_address_three_way_file.add_line_to_txt(f'            addi $a1, $a1, 1')
+        intermittent_address_three_way_file.add_line_to_txt(f'            bne $a0, $a1, copy_loop ')
+        intermittent_address_three_way_file.add_line_to_txt(f'      li $t2, 0')
+        intermittent_address_three_way_file.add_line_to_txt(f'      sb $t2, 0($s1)')
+        # intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, 4')
+        intermittent_address_three_way_file.add_line_to_txt(f'      la $a0, destination_string')
+        # intermittent_address_three_way_file.add_line_to_txt(f'      syscall')
+        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
+      elif (self.fun_context == "type_name"):
+        extracted_strings[f'string'] = '"Thisisatest"'
+        intermittent_address_three_way_file.add_line_to_txt(f'      la $v0, string')
+        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
+
       original_three_way_file.add_line_to_txt(f'{self.fun_context}:')
         
 
@@ -505,37 +533,51 @@ class PostOrderVisitor(YalpVisitor):
         return var_name
 
 
-    if (called_by != None):
-      # Cargamos el tipo
-      if len(self.freeArgs) > 0:
-        self.lastArg = self.freeArgs[0]
-        del self.freeArgs[-1]
-      else:
-        self.lastArg += 1
+    # if (called_by != None):
+    #   # Cargamos el tipo
+    #   if len(self.freeArgs) > 0:
+    #     self.lastArg = self.freeArgs[0]
+    #     del self.freeArgs[-1]
+    #   else:
+    #     self.lastArg += 1
       # intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(called_by)}($gp)')
           
     used_args = []
     for param in children:
       if (not param == ","):
         inner_params.append(param)
-        if len(self.freeArgs) > 0:
-          self.lastArg = self.freeArgs[0]
-          del self.freeArgs[-1]
-        else:
-          self.lastArg += 1
 
         if (self.lastTemp != None and param == self.lastTemp.intermediaryRule):
           # Es funcion, igual ocupa un id del lastArg
           original_three_way_file.add_line_to_txt(f'            PARAM t{self.lastTemp._id}')
           if ("." in param):
-            intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(param.split(".")[0])}($gp)')
+            if ("new" in param or "self" in param):
+              intermittent_address_three_way_file.add_line_to_txt(f'      la $a1, Object_instance')
+            else:
+              if len(self.freeArgs) > 0:
+                self.lastArg = self.freeArgs[0]
+                del self.freeArgs[0]
+              else:
+                self.lastArg += 1
+              intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(param.split(".")[0])}($gp)')
           
           # intermittent_address_three_way_file.add_line_to_txt(f'      jal {self.class_context}_{param.split(".")[-1].replace("(", "").replace(")", "")}')
           # Guardamos el resultado por si lo necesitamos
           # intermittent_address_three_way_file.add_line_to_txt(f'      move ${self.temporal_context}-t{self.lastTemp._id}, $v0')
         else:
+          if len(self.freeArgs) > 0:
+            self.lastArg = self.freeArgs[0]
+            del self.freeArgs[0]
+          else:
+            self.lastArg += 1
           original_three_way_file.add_line_to_txt(f'            PARAM {get_correct_context(param)}')
-          intermittent_address_three_way_file.add_line_to_txt(f'      la $a{self.lastArg}, {get_correct_context(param)}')
+          param = get_correct_context(param)
+          try:
+            param = int(param)
+            intermittent_address_three_way_file.add_line_to_txt(f'      li $a{self.lastArg}, {param}')
+          except:
+            intermittent_address_three_way_file.add_line_to_txt(f'      la $a{self.lastArg}, {param}')
+        
         used_args.append(self.lastArg)
     
     self.freeArgs = list(set(self.freeArgs + used_args))
@@ -581,6 +623,8 @@ class PostOrderVisitor(YalpVisitor):
     
     # intermittent_address_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
     intermittent_address_three_way_file.add_line_to_txt(f'      jal {fun_name}\n')
+    self.freeArgs = []
+    self.lastArg = -1
     # Guardamos el resultado por si lo necesitamos
     intermittent_address_three_way_file.add_line_to_txt(f'      move $t0, $v0')
     # intermittent_address_three_way_file.add_line_to_txt(f'      la $a0, {self.temporal_context}-t{current_id}')
@@ -1303,6 +1347,8 @@ file1 = open('intermittent_address.txt', 'r')
 Lines = file1.readlines()
 
 address_three_way_file.add_line_to_txt(".data")
+address_three_way_file.add_line_to_txt(f'   destination_string: .space 20 ')
+
 for extracted_string in extracted_strings:
   address_three_way_file.add_line_to_txt(f'   {extracted_string}: .asciiz {extracted_strings[extracted_string]}')
 
