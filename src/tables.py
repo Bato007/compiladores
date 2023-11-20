@@ -23,14 +23,14 @@ class LoopObject(object):
 		# 	content += (f'	goto END_L{self._id - 1}\n')
 		if (self._id != 1):
 			content += (f'	jr $ra\n\n')
-		content += (f'	L{self._id}: ')
+		content += (f'	{self.context}-L{self._id}: ')
 
 		return content
 
 	def end(self, is_while=False):
 		content = ""
 		if (is_while):
-			content += (f'	goto L{self._id}\n')
+			content += (f'	j {self.context}-L{self._id}\n')
 		# content += (f'	END_L{self._id}')
 		content += (f'	jr $ra')
 		return content
@@ -120,12 +120,23 @@ class TemporalObject(object):
 				text += f'{tab}add $t1, $t1, $t0\n'
 
 		elif (operator == "/"):
+			try:
+				labeled_tree[1] = int(labeled_tree[1])
+				text += f'{tab}li $t0, {labeled_tree[1]}\n'
+				labeled_tree[1] = "$t0"
+			except:
+				pass
 			text += f'{tab}div {labeled_tree[0]}, {labeled_tree[1]}\n'
 			text += f'{tab}mflo $t{self._id}\n'
 		
 			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
 		elif (operator == "*"):
-			text += f'{tab}mult {labeled_tree[0]}, {labeled_tree[1]}\n'
+			try:
+				labeled_tree[0] = int(labeled_tree[0])
+				text += f'{tab}li $t0, {labeled_tree[0]}\n'
+				text += f'{tab}mult $t0, {labeled_tree[1]}\n'
+			except:
+				text += f'{tab}mult {labeled_tree[0]}, {labeled_tree[1]}\n'
 			text += f'{tab}mfhi $t{self._id}\n' # 32 most significant bits
 		
 			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
@@ -133,9 +144,20 @@ class TemporalObject(object):
 			text += f'{tab}sub $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
 			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
 		elif (operator == "="):
-			text += f'{tab}li $t0, {labeled_tree[1]}\n'
-			text += f'{tab}beq {labeled_tree[0]}, $t0, L{current_id}\n'
-			text += f'{tab}j L{current_id+1}\n'
+			try:
+				labeled_tree[1] = int(labeled_tree[1])
+				text += f'{tab}li $t0, {labeled_tree[1]}\n'
+			except:
+				pass
+			try:
+				labeled_tree[0] = int(labeled_tree[0])
+				text += f'{tab}li $t0, {labeled_tree[0]}\n'
+				labeled_tree[0] = "$t0"
+			except:
+				pass
+
+			text += f'{tab}beq {labeled_tree[0]}, $t0, {context}-L{current_id}\n'
+			text += f'{tab}j {context}-L{current_id+1}\n'
 		else:
 			text += f'{tab}{context}-t{self._id} = {self.intermediaryRule}'
 
@@ -352,6 +374,9 @@ class FunctionObject(object):
 
 	def getSize(self):
 		return self.size
+	
+	def getContext(self):
+		return self.context
 
 	def addLet(self):
 		self.let_num += 1
@@ -519,6 +544,16 @@ class ClassObject(object):
 
 	def updateOffset(self, add_value):
 		self.current_offset += add_value
+
+	def __str__(self):
+		details = '{\n'
+		details += f'    name: {self.name}\n'
+		details += f'    parent: {self.parent}\n'
+		details += f'    size: {self.current_offset}\n'
+		details += f'    variables: {self.variables}\n'
+		details += f'    functions: {self.functions}\n'
+		details += '}'
+		return details
 
 class ClassesTable(object):
 	def __init__(self) -> None:

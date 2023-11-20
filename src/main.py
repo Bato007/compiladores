@@ -116,6 +116,9 @@ class TypeCollectorVisitor(YalpVisitor):
 
   # Adds variable to table
   def addVariable(self, var_name, var_type, var_context, var_default = None):
+    if var_default == "true":
+        var_default = 1
+
     return variables_table.add(
       var_name,
       var_type,
@@ -275,6 +278,13 @@ class TypeCollectorVisitor(YalpVisitor):
     if (ctx.getChildCount() == 5):
       var_type = ctx.getChild(-3).getText()
       default_value = ctx.getChild(-1).getText()
+    
+      if (var_type == "Int"):
+        try:
+          default_value = int(default_value)
+        except:
+          default_value = None
+
     else:
       var_type = ctx.getChild(-1).getText()
       default_value = None
@@ -394,7 +404,7 @@ class PostOrderVisitor(YalpVisitor):
       self.fun_context = node.getChild(0).getText()
       self.let_id = 0
 
-      intermittent_address_three_way_file.add_line_to_txt(f'{self.fun_context}:')
+      intermittent_address_three_way_file.add_line_to_txt(f'{self.class_context}-{self.fun_context}:')
 
       if (self.fun_context == "out_string"):
         intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, 4')
@@ -497,7 +507,7 @@ class PostOrderVisitor(YalpVisitor):
     class_context = self.class_context if class_name is None else class_name
 
     # intermittent_address_three_way_file.add_line_to_txt(f'\n')
-    original_three_way_file.add_line_to_txt(f'      {fun_name}')
+    original_three_way_file.add_line_to_txt(f'      {self.fun_context}-{fun_name}')
   
     def get_correct_context(var_name):
         is_not = False
@@ -528,7 +538,8 @@ class PostOrderVisitor(YalpVisitor):
           var_name = f'{self.temporal_context}-t{self.lastTemp._id}'
 
         if (is_not):
-          var_name = f'~{var_name}'
+          # var_name = f'~{var_name}'
+          var_name = f'{var_name}'
         
         return var_name
 
@@ -543,6 +554,7 @@ class PostOrderVisitor(YalpVisitor):
       # intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(called_by)}($gp)')
           
     used_args = []
+    i = 0
     for param in children:
       if (not param == ","):
         inner_params.append(param)
@@ -576,8 +588,10 @@ class PostOrderVisitor(YalpVisitor):
             param = int(param)
             intermittent_address_three_way_file.add_line_to_txt(f'      li $a{self.lastArg}, {param}')
           except:
-            intermittent_address_three_way_file.add_line_to_txt(f'      la $a{self.lastArg}, {param}')
+            if not ("." in param and full_params[i] != "String"):
+              intermittent_address_three_way_file.add_line_to_txt(f'      la $a{self.lastArg}, {param}')
         
+        i += 1
         used_args.append(self.lastArg)
     
     self.freeArgs = list(set(self.freeArgs + used_args))
@@ -622,7 +636,25 @@ class PostOrderVisitor(YalpVisitor):
     original_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
     
     # intermittent_address_three_way_file.add_line_to_txt(f'            t{current_id} = CALL {fun_name}')
-    intermittent_address_three_way_file.add_line_to_txt(f'      jal {fun_name}\n')
+    if functions_table.get(fun_name, self.class_context) == None:
+      if (self.new_context != None and self.new_context not in unoverloading):
+        while True:
+          if (functions_table.get(fun_name, self.new_context) == None):
+            self.new_context = classes_table.get(self.new_context).parent
+          else:
+            break
+
+        if (functions_table.get(fun_name, self.new_context).context != self.new_context):
+          intermittent_address_three_way_file.add_line_to_txt(f'      jal {functions_table.get(fun_name, self.new_context).context}-{fun_name}\n')
+        else:
+          intermittent_address_three_way_file.add_line_to_txt(f'      jal {self.new_context}-{fun_name}\n')
+      else:
+        intermittent_address_three_way_file.add_line_to_txt(f'      jal String-{fun_name}\n')
+    elif (functions_table.get(fun_name, self.class_context).is_inherited):
+      intermittent_address_three_way_file.add_line_to_txt(f'      jal {functions_table.get(fun_name, self.class_context).getContext()}-{fun_name}\n')
+    else:
+      intermittent_address_three_way_file.add_line_to_txt(f'      jal {self.class_context}-{fun_name}\n')
+
     self.freeArgs = []
     self.lastArg = -1
     # Guardamos el resultado por si lo necesitamos
@@ -674,11 +706,14 @@ class PostOrderVisitor(YalpVisitor):
 
   def visit(self, tree):
     self.temporal_context = f'{self.class_context}-{self.fun_context}'
+    if (self.lastTemp != None and self.lastTemp._id > 8):
+      self.freeTemps = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
     if (self.lastTemp != None and self.lastTemp.context != self.temporal_context):
       self.lastTemp = None
+      self.freeTemps = []
       self.loops = []
       self.functionsTemp = []
-      self.freeTemps = []
       self.lastArg = -1
       self.freeArgs = []
 
@@ -785,7 +820,6 @@ class PostOrderVisitor(YalpVisitor):
           or child.getText() == "then"
           or child.getText() == "loop"
         ):
-
           if (len(self.loops) == 0):
             current_id = 1
           else:
@@ -832,7 +866,8 @@ class PostOrderVisitor(YalpVisitor):
               if_condition
             )
           self.loops.append(lastLoop)
-          original_three_way_file.add_line_to_txt(self.loops[-1].start(is_if=child.getText() == "then", is_while=child.getText() == "loop"))
+          original_three_way_file.add_line_to_txt(self.loops[-1].start(
+            is_if=child.getText() == "then", is_while=child.getText() == "loop"))
           intermittent_address_three_way_file.add_line_to_txt(self.loops[-1].start(is_if=child.getText() == "then", is_while=child.getText() == "loop"))
 
         original_children.append(child.getText())
@@ -1042,7 +1077,10 @@ class PostOrderVisitor(YalpVisitor):
             try:
               labeled_tree = [f't{left_id}', _Text, f't{right_id}']
             except:
-              labeled_tree = [labeledLeftOperandText, _Text, f't{right_id}']
+              if (self.lastTemp.unlabeledRule == labeledLeftOperandText):
+                labeled_tree = [f'{self.lastTemp._id}', _Text, f't{right_id}']
+              else:
+                labeled_tree = [labeledLeftOperandText, _Text, f't{right_id}']
         
         temporals_set.add(f't{current_id + 1}')
         added_temporal = temporals_table.add(current_id + 1, self.temporal_context, "".join(labeled_tree),
@@ -1075,7 +1113,7 @@ class PostOrderVisitor(YalpVisitor):
           current_id = 1
         else:
           current_id = self.loops[-1]._id + 1
-            
+        
         intermittent_address_three_way_file.add_line_to_txt(added_temporal.three_way_print_context(
           context=self.temporal_context,
           labeled_tree=labeled_tree,
@@ -1155,7 +1193,8 @@ class PostOrderVisitor(YalpVisitor):
             inner_param = f'{self.class_context}-{inner_param}'
 
           if (is_not):
-            inner_param = f'~{inner_param}'
+            inner_param = f'{inner_param}'
+            # inner_param = f'~{inner_param}'
 
           if ("new" in inner_param):
             inner_param = inner_param.replace("new", "")
@@ -1211,6 +1250,7 @@ class PostOrderVisitor(YalpVisitor):
 
       if node_type == YalpParser.ObjCreationContext:
         object_type = tree.getChild(1).getText()
+        self.new_context = object_type
 
         if (classes_table.contains(object_type)):
           if len(self.freeArgs) > 0:
@@ -1354,6 +1394,7 @@ for extracted_string in extracted_strings:
 
 for var in variables_table.table:
   value = variables_table.table[var].init_value
+
   if (value != None):
     address_three_way_file.add_line_to_txt(f'   {var.replace("-", "_")}: .word  {value}')
   else:
@@ -1366,7 +1407,7 @@ for instance_class in classes_table.table:
   address_three_way_file.add_line_to_txt(f'   {instance_class.replace("-", "_")}_instance: .word  {classes_table.get(instance_class).getOffset()}')
 
 address_three_way_file.add_line_to_txt(".text")
-address_three_way_file.add_line_to_txt(f'   .globl main')
+address_three_way_file.add_line_to_txt(f'   .globl Main_main')
 
 main_content_lines = []
 found_main = False
@@ -1374,7 +1415,7 @@ found_main = False
 for line in Lines:
   if found_main and ':' not in line:
       main_content_lines.append(line)
-  elif line.startswith('main:'):
+  elif "Main-main:" in line:
       main_content_lines.append(line)
       found_main = True
 
@@ -1389,7 +1430,8 @@ address_three_way_file.add_line_to_txt("      syscall")
 found_main = 0
 for line in Lines:
   new_line = return_correct_mips(variables_table, temporals_table, extracted_strings, line)
-  if new_line.startswith('main:'):
+
+  if "Main-main:" in line:
     break
 
   address_three_way_file.add_line_to_txt(new_line)

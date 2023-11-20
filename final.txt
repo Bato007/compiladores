@@ -1,111 +1,68 @@
 .data
+   destination_string: .space 20 
    string1: .asciiz "Name"
    string2: .asciiz "temp"
    string3: .asciiz "test"
    string4: .asciiz "test"
+   string5: .asciiz "Hello, World.\n"
+   string: .asciiz "Thisisatest"
    IO_out_string_x: .word  
    IO_out_int_x: .word  0
    String_concat_other: .word  
    String_substr_i: .word  0
    String_substr_l: .word  0
-   Fibonacci_fibonacci_n: .word  0
-   Fibonacci_fibonacci_let_1_f: .word  0
-   Main_n: .word  3
-   Main_fibo: .word  4
-   Main_main_t2: .word  220
-   Main_main_t1: .word  196
-   Fibonacci_fibonacci_t9: .word  200
-   Fibonacci_fibonacci_t8: .word  216
-   Fibonacci_fibonacci_t7: .word  224
-   Fibonacci_fibonacci_t6: .word  232
-   Fibonacci_fibonacci_t5: .word  228
-   Fibonacci_fibonacci_t4: .word  208
-   Fibonacci_fibonacci_t3: .word  212
-   Fibonacci_fibonacci_t2: .word  220
-   Fibonacci_fibonacci_t11: .word  204
-   Fibonacci_fibonacci_t10: .word  192
-   Fibonacci_fibonacci_t1: .word  196
+   Main_main_t1: .word  148
    Object_instance: .word  24
    IO_instance: .word  56
    Bool_instance: .word  0
    Int_instance: .word  0
    String_instance: .word  60
-   Fibonacci_instance: .word  20
-   Main_instance: .word  32
+   Main_instance: .word  8
 .text
-   .globl main
-main:
-      la $a0, Fibonacci_instance
-      la $a2, Main_n
-      jal fibonacci
-
-      move $t0, $v0
-      lw $a2, 4($gp)
-      jal out_int
+   .globl Main_main
+Main_main:
+      la $a0, string5
+      jal IO_out_string
 
       move $t0, $v0
       li $v0, 10
       syscall
-abort:
-type_name:
-out_string:
+Object_abort:
+Object_type_name:
+      la $v0, string
+      jr $ra
+IO_out_string:
       li $v0, 4
       la $t0, 0($a0)
       syscall
       jr $ra
-out_int:
+IO_out_int:
       li $v0, 1
       move $a0, $t0
       syscall
       jr $ra
-in_string:
-in_int:
-length:
-concat:
-substr:
-fibonacci:
-     	la $a0, Main_n
-     	lw $t1, 0($a0)
-     	li $t0, 1
-     	beq $t1, $t0, L1
-     	j L2
-
-	L1:
-      li $v0, 1
-	jr $ra
-
-	L2:
-     	la $a0, Main_n
-     	lw $t3, 0($a0)
-     	li $t0, 2
-     	beq $t3, $t0, L3
-     	j L4
-
-	jr $ra
-
-	L3:
-      li $v0, 5
-	jr $ra
-
-	L4:
-     	la $a0, Main_n
-     	lw $t5, 0($a0)
-     	sub $t6, $t5, 1
-     	sw $t6, 232($gp)
-      la $a0, Fibonacci_fibonacci_t6
-      jal fibonacci
-
-      move $t0, $v0
-     	la $a0, Main_n
-     	lw $t8, 0($a0)
-     	sub $t9, $t8, 2
-     	sw $t9, 200($gp)
-      la $a0, Fibonacci_fibonacci_t9
-      jal fibonacci
-
-      move $t0, $v0
-     	add $t1, $t1, $t0
-
-
-	jr $ra
-	jr $ra
+IO_in_string:
+IO_in_int:
+String_length:
+String_concat:
+String_substr:
+      bge $a1, $a0, swap_values
+      j continue
+      swap_values:
+             move $a2, $a0
+             move $a0, $a1
+             move $a1, $a2
+      continue:
+      la $s0, string
+      la $s1, destination_string
+      copy_loop:
+            lb $t2, 0($s0)
+            sb $t2, 0($s1)
+            addi $s0, $s0, 1
+            addi $s1, $s1, 1
+            addi $a1, $a1, 1
+            bne $a0, $a1, copy_loop
+      li $t2, 0
+      sb $t2, 0($s1)
+      la $a0, destination_string
+      jr $ra
