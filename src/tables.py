@@ -15,13 +15,15 @@ class LoopObject(object):
 
 	def start(self, is_if=False, is_while=False):
 		content = ""
-		if (is_if):
-			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}\n')
-			content += (f'	goto L{self._id + 1}\n')
-		elif (is_while): # while
-			content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}\n')
-			content += (f'	goto END_L{self._id - 1}\n')
-		content += (f'	L{self._id}')
+		# if (is_if):
+		# 	content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}\n')
+		# 	content += (f'	goto L{self._id + 1}\n')
+		# elif (is_while): # while
+		# 	content += (f'	if {self.context}-t{self.if_condition} goto L{self._id}\n')
+		# 	content += (f'	goto END_L{self._id - 1}\n')
+		if (self._id != 1):
+			content += (f'	jr $ra\n\n')
+		content += (f'	L{self._id}: ')
 
 		return content
 
@@ -29,7 +31,8 @@ class LoopObject(object):
 		content = ""
 		if (is_while):
 			content += (f'	goto L{self._id}\n')
-		content += (f'	END_L{self._id}')
+		# content += (f'	END_L{self._id}')
+		content += (f'	jr $ra')
 		return content
 
 	def setGoto(self, goto):
@@ -95,10 +98,12 @@ class TemporalObject(object):
 	def three_way_print_context(self, 
 							 context, 
 							 labeled_tree,
+							 current_id=-1,
 							 tab="     	"):
 		
 		text = ""
 		has_integer = False
+		next_label = 0
 		operator = labeled_tree.pop(1)
 		for i in range(len(labeled_tree)):
 			if not labeled_tree[i].isdigit():
@@ -109,10 +114,11 @@ class TemporalObject(object):
 		if (operator == "+"):
 			if (has_integer):
 				text += f'{tab}addi $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
+				text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
+			
 			else:
-				text += f'{tab}add $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
+				text += f'{tab}add $t1, $t1, $t0\n'
 
-			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
 		elif (operator == "/"):
 			text += f'{tab}div {labeled_tree[0]}, {labeled_tree[1]}\n'
 			text += f'{tab}mflo $t{self._id}\n'
@@ -126,6 +132,10 @@ class TemporalObject(object):
 		elif (operator == "-"):
 			text += f'{tab}sub $t{self._id}, {labeled_tree[0]}, {labeled_tree[1]}\n'
 			text += f'{tab}sw $t{self._id}, {context}-t{self._id}($gp)'
+		elif (operator == "="):
+			text += f'{tab}li $t0, {labeled_tree[1]}\n'
+			text += f'{tab}beq {labeled_tree[0]}, $t0, L{current_id}\n'
+			text += f'{tab}j L{current_id+1}\n'
 		else:
 			text += f'{tab}{context}-t{self._id} = {self.intermediaryRule}'
 

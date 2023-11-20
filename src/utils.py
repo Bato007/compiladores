@@ -20,7 +20,8 @@ def return_correct_mips(variables_table, temporals_table, extracted_strings, lin
         elif ("lw" in new_line or "sw" in new_line):
           new_line = new_line.replace(var, f'{offset}')
         else:
-          new_line = new_line.replace(var, f'GP[{offset}]')
+          # new_line = new_line.replace(var, f'GP[{offset}]')
+          new_line = ''
       except:
         pass
   
@@ -32,8 +33,9 @@ def return_correct_mips(variables_table, temporals_table, extracted_strings, lin
         elif ("lw" in new_line or "sw" in new_line):
           new_line = new_line.replace(temp, f'{temporals_table.getByKey(temp).offset}')
         else:
-          new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
-
+          # new_line = new_line.replace(temp, f'GP[{temporals_table.getByKey(temp).offset}]')
+          new_line = ''
+          
   for extracted_string in extracted_strings:
     value = extracted_strings[extracted_string]
     if (value in line):
