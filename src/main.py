@@ -410,12 +410,10 @@ class PostOrderVisitor(YalpVisitor):
         intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, 4')
         intermittent_address_three_way_file.add_line_to_txt(f'      la $t0, 0($a0)')
         intermittent_address_three_way_file.add_line_to_txt(f'      syscall')
-        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
       elif (self.fun_context == "out_int"):
         intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, 1')
         intermittent_address_three_way_file.add_line_to_txt(f'      move $a0, $t0')
         intermittent_address_three_way_file.add_line_to_txt(f'      syscall')
-        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
       elif (self.fun_context == "substr"):
         intermittent_address_three_way_file.add_line_to_txt(f'      bge $a1, $a0, swap_values')
         intermittent_address_three_way_file.add_line_to_txt(f'      j continue')
@@ -425,7 +423,7 @@ class PostOrderVisitor(YalpVisitor):
         intermittent_address_three_way_file.add_line_to_txt(f'             move $a1, $a2')
 
         intermittent_address_three_way_file.add_line_to_txt(f'      continue:')
-        intermittent_address_three_way_file.add_line_to_txt(f'      la $s0, string')
+        intermittent_address_three_way_file.add_line_to_txt(f'      move $s0, $t7')
         intermittent_address_three_way_file.add_line_to_txt(f'      la $s1, destination_string')
         intermittent_address_three_way_file.add_line_to_txt(f'      copy_loop:')
         intermittent_address_three_way_file.add_line_to_txt(f'            lb $t2, 0($s0)')
@@ -436,14 +434,9 @@ class PostOrderVisitor(YalpVisitor):
         intermittent_address_three_way_file.add_line_to_txt(f'            bne $a0, $a1, copy_loop ')
         intermittent_address_three_way_file.add_line_to_txt(f'      li $t2, 0')
         intermittent_address_three_way_file.add_line_to_txt(f'      sb $t2, 0($s1)')
-        # intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, 4')
         intermittent_address_three_way_file.add_line_to_txt(f'      la $a0, destination_string')
-        # intermittent_address_three_way_file.add_line_to_txt(f'      syscall')
-        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
       elif (self.fun_context == "type_name"):
-        extracted_strings[f'string'] = '"Thisisatest"'
-        intermittent_address_three_way_file.add_line_to_txt(f'      la $v0, string')
-        intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
+        intermittent_address_three_way_file.add_line_to_txt(f'      lw $v0, 0($t7)')
 
       original_three_way_file.add_line_to_txt(f'{self.fun_context}:')
         
@@ -463,6 +456,9 @@ class PostOrderVisitor(YalpVisitor):
 
   def getFunctionDeclarationType(self, child_types):
     function = functions_table.get(self.fun_context, self.class_context)
+    if (self.class_context != 'Main' and self.fun_context != 'main'):
+      intermittent_address_three_way_file.add_line_to_txt(f'      jr $ra')
+
     if (function.return_type == child_types[-2]):
       return function.return_type
 
@@ -502,7 +498,7 @@ class PostOrderVisitor(YalpVisitor):
 
     return parent_class
 
-  def checkFunctionCall(self, fun_name, full_params, class_name = None, children = [], called_by=None):
+  def checkFunctionCall(self, fun_name, full_params, class_name = None, children = [], called_by=None, child_types = []):
     inner_params = []
     class_context = self.class_context if class_name is None else class_name
 
@@ -543,16 +539,6 @@ class PostOrderVisitor(YalpVisitor):
         
         return var_name
 
-
-    # if (called_by != None):
-    #   # Cargamos el tipo
-    #   if len(self.freeArgs) > 0:
-    #     self.lastArg = self.freeArgs[0]
-    #     del self.freeArgs[-1]
-    #   else:
-    #     self.lastArg += 1
-      # intermittent_address_three_way_file.add_line_to_txt(f'      lw $a{self.lastArg}, {get_correct_context(called_by)}($gp)')
-          
     used_args = []
     i = 0
     for param in children:
@@ -651,7 +637,10 @@ class PostOrderVisitor(YalpVisitor):
       else:
         intermittent_address_three_way_file.add_line_to_txt(f'      jal String-{fun_name}\n')
     elif (functions_table.get(fun_name, self.class_context).is_inherited):
-      intermittent_address_three_way_file.add_line_to_txt(f'      jal {functions_table.get(fun_name, self.class_context).getContext()}-{fun_name}\n')
+      if (fun_name == 'type_name'):
+        intermittent_address_three_way_file.add_line_to_txt(f'      la $t7 class_{child_types[0]}\n')
+      else:
+        intermittent_address_three_way_file.add_line_to_txt(f'      jal {functions_table.get(fun_name, self.class_context).getContext()}-{fun_name}\n')
     else:
       intermittent_address_three_way_file.add_line_to_txt(f'      jal {self.class_context}-{fun_name}\n')
 
@@ -697,12 +686,12 @@ class PostOrderVisitor(YalpVisitor):
   def varFunctionCall(self, node, child_types, children):
     var_type = child_types[0]
     fun_name = node.getChild(2).getText()
-    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children[4:-1], children[0])
+    return self.checkFunctionCall(fun_name, child_types[4:-1], var_type, children[4:-1], children[0], child_types=child_types)
 
   def parentFunctionCall(self, node, child_types, children):
     var_type = node.getChild(2).getText()
     fun_name = node.getChild(4).getText()
-    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children[6:-1], children[2])
+    return self.checkFunctionCall(fun_name, child_types[6:-1], var_type, children[6:-1], children[2], child_types=child_types)
 
   def visit(self, tree):
     self.temporal_context = f'{self.class_context}-{self.fun_context}'
@@ -876,30 +865,12 @@ class PostOrderVisitor(YalpVisitor):
       if child_count == 1: return child_types[0]
       if (node_type == YalpParser.ParentesisContext): return child_types[1]
       if (node_type == YalpParser.InstructionsContext): return child_types[-3]
-      if (node_type == YalpParser.Var_declarationsContext): 
-        # temporal_found = False
-        # for temp in self.functionsTemp:
-        #   temp_content = temporals_table.get(self.temporal_context, temp)
-        #   if temp_content in tree.getText().split("<-")[-1]:
-        #     intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{temp}')
-        #     self.freeTemps.append(temp)
-        #     original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{temp}')
-        #     temporal_found = True
-        #     break
-        # if (not temporal_found and self.lastTemp != None and self.lastTemp.unlabeledRule == tree.getText().split("<-")[-1]):
-        #   intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
-        #   self.freeTemps.append(self.lastTemp._id)
-        #   original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {self.temporal_context}-t{self.lastTemp._id}')
-        # elif (not temporal_found):
-        #   intermittent_address_three_way_file.add_line_to_txt(f'      {classes_table.table.get(self.class_context).name}-{tree.getChild(0)} = {tree.getChild(-1).getText()}')
-        #   original_three_way_file.add_line_to_txt(f'	{tree.getChild(0)} = {tree.getChild(-1).getText()}')
-          
-        
+      if (node_type == YalpParser.Var_declarationsContext):
         return self.getVarDeclarationType(tree)
       if (node_type == YalpParser.FormalContext): return child_types[2]
       if (node_type == YalpParser.LetParamContext): return child_types[2]
       if (node_type == YalpParser.LocalFunCallContext): 
-        return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1], children=original_children[2:-1])
+        return self.checkFunctionCall(tree.getChild(0).getText(), child_types[2:-1], children=original_children[2:-1], child_types=child_types)
 
       if (node_type == YalpParser.LoopTenseContext):
         if (child_types[1] != 'Bool' and child_types[1] != 'Int'):
@@ -1200,11 +1171,11 @@ class PostOrderVisitor(YalpVisitor):
             inner_param = inner_param.replace("new", "")
             inner_param = inner_param.replace('(', '').replace(')', '')
 
+          param_lower = inner_param.replace('-', '_')
           if (child_types[0] in uninherable):          
-            # intermittent_address_three_way_file.add_line_to_txt(f'     {var_name} = {inner_param}')
-            intermittent_address_three_way_file.add_line_to_txt(f'      li $v0, {inner_param}')
-            original_three_way_file.add_line_to_txt(f'  {tree.getChild(0)} = {inner_param}')
-        
+            print('ENTRA', var_name)
+            intermittent_address_three_way_file.add_line_to_txt(f'      la $t1, {param_lower}')
+            intermittent_address_three_way_file.add_line_to_txt(f'      sw $t0, 0($t1)')
 
         if (ERROR_STRING in child_types):
           variable = tree.getChild(0)
@@ -1265,7 +1236,10 @@ class PostOrderVisitor(YalpVisitor):
 
         print('Type', object_type, 'doesnt exists')
         return ERROR_STRING
-        
+
+      if (node_type == YalpParser.IsVoidExprContext):
+        return 'Bool'
+
       if (node_type == YalpParser.FunDeclarationContext):
         if (ERROR_STRING in child_types):
           return ERROR_STRING
@@ -1387,6 +1361,10 @@ file1 = open('intermittent_address.txt', 'r')
 Lines = file1.readlines()
 
 address_three_way_file.add_line_to_txt(".data")
+
+for classes in classes_table.table:
+  address_three_way_file.add_line_to_txt(f'   class_{classes}: .asciiz "{classes}"')
+
 address_three_way_file.add_line_to_txt(f'   destination_string: .space 20 ')
 
 for extracted_string in extracted_strings:

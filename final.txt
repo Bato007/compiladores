@@ -1,16 +1,27 @@
 .data
+   class_Object: .asciiz "Object"
+   class_IO: .asciiz "IO"
+   class_Bool: .asciiz "Bool"
+   class_Int: .asciiz "Int"
+   class_String: .asciiz "String"
+   class_Main: .asciiz "Main"
    destination_string: .space 20 
    string1: .asciiz "Name"
    string2: .asciiz "temp"
    string3: .asciiz "test"
    string4: .asciiz "test"
-   string5: .asciiz "Hello, World.\n"
-   string: .asciiz "Thisisatest"
+   string5: .asciiz "\n"
    IO_out_string_x: .word  
    IO_out_int_x: .word  0
    String_concat_other: .word  
    String_substr_i: .word  0
    String_substr_l: .word  0
+   Main_main_t7: .word  168
+   Main_main_t6: .word  164
+   Main_main_t5: .word  152
+   Main_main_t4: .word  172
+   Main_main_t3: .word  156
+   Main_main_t2: .word  160
    Main_main_t1: .word  148
    Object_instance: .word  24
    IO_instance: .word  56
@@ -21,6 +32,31 @@
 .text
    .globl Main_main
 Main_main:
+      la $a0, String_instance
+      la $t7 class_String
+
+      move $t0, $v0
+      li $a0, 4
+      li $a1, 1
+      jal String_substr
+
+      move $t0, $v0
+      la $a1, Object_instance
+      jal IO_out_string
+
+      move $t0, $v0
+      la $t7 class_Bool
+
+      move $t0, $v0
+      li $a0, 1
+      li $a1, 3
+      jal String_substr
+
+      move $t0, $v0
+      la $a1, Object_instance
+      jal IO_out_string
+
+      move $t0, $v0
       la $a0, string5
       jal IO_out_string
 
@@ -28,8 +64,9 @@ Main_main:
       li $v0, 10
       syscall
 Object_abort:
+      jr $ra
 Object_type_name:
-      la $v0, string
+      lw $v0, 0($t7)
       jr $ra
 IO_out_string:
       li $v0, 4
@@ -42,9 +79,13 @@ IO_out_int:
       syscall
       jr $ra
 IO_in_string:
+      jr $ra
 IO_in_int:
+      jr $ra
 String_length:
+      jr $ra
 String_concat:
+      jr $ra
 String_substr:
       bge $a1, $a0, swap_values
       j continue
@@ -53,7 +94,7 @@ String_substr:
              move $a0, $a1
              move $a1, $a2
       continue:
-      la $s0, string
+      move $s0, $t7
       la $s1, destination_string
       copy_loop:
             lb $t2, 0($s0)
