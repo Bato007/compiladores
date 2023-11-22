@@ -1,16 +1,16 @@
 class Main inherits IO {
 
-  out : Int <-		-- out is our 'output'.  It's values are the primes.
+  out : Int <-
     {
       out_string("2 is trivially prime.\n");
       2;
     };
   
-  testee : Int <- out;	-- testee is a number to be tested for primeness.   
-  divisor : Int;	-- divisor is a number which may factor testee.
-  stop : Int <- 500;	-- stop is an arbitrary value limiting testee. 	
+  testee : Int <- out;  
+  divisor : Int;
+  stop : Int <- 500;
 
-  main() : Object {	-- main() is an atrophied method so we can parse. 
+  main() : Object {
      {
       while true loop 
       {
@@ -20,9 +20,9 @@ class Main inherits IO {
 
         while 
           if testee < divisor * divisor 
-            then false 		-- can stop if divisor > sqrt(testee).
+            then false
 	  else if testee - divisor*(testee/divisor) = 0 
-            then false 		-- can stop if divisor divides testee. 
+            then false
             else true
           fi fi     
         loop 
@@ -32,16 +32,16 @@ class Main inherits IO {
         if testee < divisor * divisor	-- which reason did we stop for?
         then 	-- testee has no factors less than sqrt(testee).
           {
-            out <- testee;	-- we could think of out itself as the output.
+            out <- testee;
             out_int(out); 
             out_string(" is prime.\n");
           }
-        else	-- the loop halted on testee/divisor = 0, testee isn't prime.
-          0	-- testee isn't prime, do nothing.
+        else
+          0
 	fi;   	
 
         if stop <= testee then 
-          "halt".abort()	-- we could think of "halt" as SIGTERM.
+          "halt".abort()
         else 
           "continue"
         fi;       
